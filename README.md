@@ -28,7 +28,7 @@ LexiNote automatically highlights difficult English words based on your level an
 
 ## Status
 
-MVP implementation is in progress. Core local features are available for manual testing.
+First version implementation is OK. Core local features are available for manual testing.
 
 ## Development
 
