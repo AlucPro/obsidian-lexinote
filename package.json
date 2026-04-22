@@ -1,0 +1,40 @@
+{
+  "name": "obsidian-lexinote",
+  "version": "0.1.0",
+  "description": "Learn vocabulary while writing in Obsidian.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "vocabulary",
+    "english-learning"
+  ],
+  "author": {
+    "name": "AlucPro",
+    "url": "https://github.com/AlucPro"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/AlucPro/obsidian-lexinote#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlucPro/obsidian-lexinote.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AlucPro/obsidian-lexinote/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.2",
+    "obsidian": "^1.5.12",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.2",
+    "vitest": "^1.6.1"
+  }
+}
