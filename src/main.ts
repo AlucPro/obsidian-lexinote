@@ -1,4 +1,5 @@
 import { Notice, Plugin } from "obsidian";
+import type { Editor, MarkdownFileInfo } from "obsidian";
 import { Analyzer } from "./analysis/Analyzer";
 import { DEFAULT_SETTINGS, SIDEBAR_VIEW_TYPE } from "./constants";
 import { DictionaryService } from "./dictionary/DictionaryService";
@@ -25,6 +26,12 @@ export default class LexiNotePlugin extends Plugin {
   analyzer: Analyzer = new Analyzer();
   highlighter?: EditorHighlighter;
   private reanalyzeTimer?: number;
+  private pendingEditorAnalysis?:
+    | {
+        filePath: string;
+        text: string;
+      }
+    | undefined;
 
   async onload(): Promise<void> {
     await this.loadPluginData();
@@ -75,8 +82,8 @@ export default class LexiNotePlugin extends Plugin {
     );
 
     this.registerEvent(
-      this.app.workspace.on("editor-change", () => {
-        this.queueReanalyzeActiveDocument("editor-change");
+      this.app.workspace.on("editor-change", (editor, info) => {
+        this.queueReanalyzeEditorContent(editor, info);
       })
     );
 
@@ -137,6 +144,19 @@ export default class LexiNotePlugin extends Plugin {
     if (reason === "startup" || reason === "active-file-change") {
       new Notice(`LexiNote found ${result.difficultWords.length} difficult words.`);
     }
+  }
+
+  reanalyzeEditorContent(filePath: string, text: string): void {
+    const result = this.analyzer.analyze({
+      filePath,
+      text,
+      settings: this.settings,
+      dictionary: this.dictionaryService,
+      favorites: this.favorites
+    });
+
+    this.analysisStore.setCurrent(result);
+    this.highlighter?.update(result, this.settings);
   }
 
   registerViews(): void {
@@ -275,6 +295,37 @@ export default class LexiNotePlugin extends Plugin {
 
     this.reanalyzeTimer = window.setTimeout(() => {
       void this.reanalyzeActiveDocument(reason);
+    }, 300);
+  }
+
+  private queueReanalyzeEditorContent(
+    editor: Editor,
+    info: MarkdownFileInfo
+  ): void {
+    const file = info.file;
+
+    if (!file || file.extension !== "md") {
+      this.analysisStore.setCurrent(undefined);
+      this.highlighter?.update(undefined, this.settings);
+      return;
+    }
+
+    this.pendingEditorAnalysis = {
+      filePath: file.path,
+      text: editor.getValue()
+    };
+
+    if (this.reanalyzeTimer) {
+      window.clearTimeout(this.reanalyzeTimer);
+    }
+
+    this.reanalyzeTimer = window.setTimeout(() => {
+      const pendingAnalysis = this.pendingEditorAnalysis;
+      this.pendingEditorAnalysis = undefined;
+
+      if (pendingAnalysis) {
+        this.reanalyzeEditorContent(pendingAnalysis.filePath, pendingAnalysis.text);
+      }
     }, 300);
   }
 }
