@@ -1,6 +1,6 @@
 import type { DictionaryDifficulty, LexiNoteSettings } from "./types";
 
-export const DEFAULT_USER_DIFFICULTY: DictionaryDifficulty = 4;
+export const DEFAULT_USER_DIFFICULTY: DictionaryDifficulty = 3;
 
 export const DEFAULT_SETTINGS: LexiNoteSettings = {
   userDifficulty: DEFAULT_USER_DIFFICULTY,
@@ -9,7 +9,7 @@ export const DEFAULT_SETTINGS: LexiNoteSettings = {
   hideKnownWords: true,
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
-  fallbackApiKey: ""
+  fallbackApiKey: "",
 };
 
 export const NO_LOCAL_MEANING_TEXT = "暂无本地释义";
