@@ -1,5 +1,7 @@
 # LexiNote
 
+![LexiNote 演示](asset/demo.gif)
+
 [English](../README.md) | [中文](README_ZH.md)
 
 在 Obsidian 写作时顺手学习词汇。
@@ -155,6 +157,17 @@ fallback client 只会发送：
 {
   "word": "meticulous"
 }
+```
+
+## Release
+
+假设要发布 0.1.1 这个号到 github上。
+
+```bash
+gh release create 0.1.1 manifest.json main.js styles.css \
+  --title "0.1.1" \
+  --notes "Release 0.1.1"
+
 ```
 
 ## License

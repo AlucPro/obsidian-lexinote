@@ -143,6 +143,7 @@ main.js
 main.js.map
 *.map
 
+.DS_Store
 
 # docs
 # docs

@@ -1,5 +1,7 @@
 # LexiNote
 
+![LexiNote Demo](docs/asset/demo.gif)
+
 [English](README.md) | [中文](docs/README_ZH.md)
 
 Learn vocabulary while writing in Obsidian.
@@ -155,6 +157,17 @@ The fallback client sends only:
 {
   "word": "meticulous"
 }
+```
+
+## Release
+
+eg: release version 0.1.1 to github
+
+```bash
+gh release create 0.1.1 manifest.json main.js styles.css \
+  --title "0.1.1" \
+  --notes "Release 0.1.1"
+
 ```
 
 ## License
