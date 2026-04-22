@@ -1,3 +1,4 @@
+import { requestUrl } from "obsidian";
 import type { LexiNoteSettings } from "../types";
 
 export interface FallbackLookupResult {
@@ -23,21 +24,24 @@ export class FallbackDefinitionClient {
     }
 
     try {
-      const response = await fetch(settings.fallbackApiEndpoint, {
+      const response = await requestUrl({
+        url: settings.fallbackApiEndpoint,
         method: "POST",
+        contentType: "application/json",
         headers: this.buildHeaders(settings),
         body: JSON.stringify({
           word
-        })
+        }),
+        throw: false
       });
 
-      if (!response.ok) {
+      if (response.status < 200 || response.status >= 300) {
         return {
           error: `fallback request failed: ${response.status}`
         };
       }
 
-      return this.parseResponse(await response.text());
+      return this.parseResponse(response.text);
     } catch (error) {
       return {
         error: error instanceof Error ? error.message : "fallback request failed"
@@ -46,9 +50,7 @@ export class FallbackDefinitionClient {
   }
 
   private buildHeaders(settings: LexiNoteSettings): Record<string, string> {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json"
-    };
+    const headers: Record<string, string> = {};
 
     if (settings.fallbackApiKey?.trim()) {
       headers.Authorization = `Bearer ${settings.fallbackApiKey.trim()}`;

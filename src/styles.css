@@ -14,18 +14,27 @@
   margin-bottom: 12px;
 }
 
-.lexinote-sidebar h3,
-.lexinote-library h3 {
+.lexinote-panel-heading {
+  border: 0;
   flex: 1 1 auto;
   margin: 0;
   min-width: 0;
-  font-size: var(--font-ui-medium);
+  padding: 0;
 }
 
-.lexinote-panel-heading {
+.lexinote-panel-heading .setting-item-info {
+  flex: 1 1 auto;
+  margin: 0;
+  min-width: 0;
+}
+
+.lexinote-panel-heading .setting-item-name {
   align-items: center;
-  display: inline-flex;
+  display: flex;
+  font-size: var(--font-ui-medium);
   gap: 6px;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .lexinote-panel-heading-icon {
@@ -33,9 +42,11 @@
   color: var(--text-accent);
   display: inline-flex;
   flex: 0 0 auto;
+  line-height: 0;
 }
 
 .lexinote-panel-heading-icon svg {
+  display: block;
   height: 18px;
   stroke-width: 2;
   width: 18px;

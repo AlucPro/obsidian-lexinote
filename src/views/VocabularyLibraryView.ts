@@ -1,4 +1,4 @@
-import { ItemView, setIcon } from "obsidian";
+import { ItemView, Setting, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { LIBRARY_VIEW_TYPE, NO_LOCAL_MEANING_TEXT } from "../constants";
 import { LEXINOTE_ICON_ID } from "../icons";
@@ -23,27 +23,31 @@ export class VocabularyLibraryView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "LexiNote Vocabulary Library";
+    return "LexiNote vocabulary library";
   }
 
   getIcon(): string {
     return LEXINOTE_ICON_ID;
   }
 
-  async onOpen(): Promise<void> {
+  onOpen(): Promise<void> {
     this.renderShell();
     this.unsubscribe = this.plugin.vocabularyStore.subscribe(() => {
       this.renderList();
     });
+
+    return Promise.resolve();
   }
 
-  async onClose(): Promise<void> {
+  onClose(): Promise<void> {
     this.unsubscribe?.();
     this.unsubscribe = undefined;
 
     if (this.searchTimer) {
       window.clearTimeout(this.searchTimer);
     }
+
+    return Promise.resolve();
   }
 
   private renderShell(): void {
@@ -51,23 +55,23 @@ export class VocabularyLibraryView extends ItemView {
     container.replaceChildren();
     container.classList.add("lexinote-library");
 
-    const heading = document.createElement("h3");
-    heading.classList.add("lexinote-panel-heading");
+    const heading = new Setting(container).setName("").setHeading();
+    heading.settingEl.classList.add("lexinote-panel-heading");
 
     const headingIcon = document.createElement("span");
     headingIcon.classList.add("lexinote-panel-heading-icon");
     setIcon(headingIcon, LEXINOTE_ICON_ID);
 
     const headingText = document.createElement("span");
-    headingText.textContent = "My Vocabulary";
+    headingText.textContent = "My vocabulary";
 
-    heading.append(headingIcon, headingText);
+    heading.nameEl.replaceChildren(headingIcon, headingText);
 
     const controls = this.createControls();
     this.listContainerEl = document.createElement("div");
     this.listContainerEl.classList.add("lexinote-library-results");
 
-    container.append(heading, controls, this.listContainerEl);
+    container.append(controls, this.listContainerEl);
     this.renderList();
   }
 

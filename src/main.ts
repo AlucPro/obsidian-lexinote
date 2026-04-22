@@ -51,7 +51,7 @@ export default class LexiNotePlugin extends Plugin {
 
     this.dictionaryService = new DictionaryService();
     this.dictionaryImporter = new DictionaryImporter();
-    this.dictionaryService.loadBuiltIn(await this.loadBuiltInDictionaryFixtures());
+    this.dictionaryService.loadBuiltIn(this.loadBuiltInDictionaryFixtures());
     this.dictionaryService.setCustomSnapshot(this.customDictionarySnapshot);
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
 
@@ -90,7 +90,7 @@ export default class LexiNotePlugin extends Plugin {
 
     this.addCommand({
       id: "open-vocabulary-library",
-      name: "Open Vocabulary Library",
+      name: "Open vocabulary library",
       callback: () => {
         void this.activateLibraryView();
       }
@@ -140,7 +140,7 @@ export default class LexiNotePlugin extends Plugin {
     await this.saveData(data);
   }
 
-  async refreshDictionary(): Promise<void> {
+  refreshDictionary(): void {
     this.dictionaryService.setCustomSnapshot(this.customDictionarySnapshot);
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
   }
@@ -160,7 +160,7 @@ export default class LexiNotePlugin extends Plugin {
     }
 
     await this.savePluginData();
-    await this.refreshDictionary();
+    this.refreshDictionary();
     await this.reanalyzeActiveDocument("settings-change");
   }
 
@@ -179,7 +179,7 @@ export default class LexiNotePlugin extends Plugin {
     };
 
     await this.savePluginData();
-    await this.refreshDictionary();
+    this.refreshDictionary();
     await this.reanalyzeActiveDocument("dictionary-change");
     new Notice(`Imported ${result.successCount} words into LexiNote.`);
 
@@ -367,7 +367,7 @@ export default class LexiNotePlugin extends Plugin {
     return snapshot;
   }
 
-  private async loadBuiltInDictionaryFixtures(): Promise<DictionaryEntry[]> {
+  private loadBuiltInDictionaryFixtures(): DictionaryEntry[] {
     return [
       ...(cet4Dictionary as unknown[]),
       ...(cet6Dictionary as unknown[])
@@ -375,7 +375,7 @@ export default class LexiNotePlugin extends Plugin {
   }
 
 
-  private isDictionaryEntry(entry: unknown): entry is DictionaryEntry {
+  private isDictionaryEntry(this: void, entry: unknown): entry is DictionaryEntry {
     if (!entry || typeof entry !== "object") {
       return false;
     }

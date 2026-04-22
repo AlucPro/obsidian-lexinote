@@ -208,9 +208,13 @@ export class HoverProvider {
       button.disabled = true;
       statusEl.textContent = "查询中...";
 
-      void this.plugin.fallbackClient
-        .lookup(word, this.plugin.settings)
-        .then((result) => {
+      void (async () => {
+        try {
+          const result = await this.plugin.fallbackClient.lookup(
+            word,
+            this.plugin.settings
+          );
+
           if (result.meaning) {
             meaningEl.textContent = formatMeaningText(
               result.meaning,
@@ -220,10 +224,12 @@ export class HoverProvider {
           } else {
             statusEl.textContent = result.error ?? "查询失败";
           }
-        })
-        .finally(() => {
+        } catch (error) {
+          statusEl.textContent = error instanceof Error ? error.message : "查询失败";
+        } finally {
           button.disabled = false;
-        });
+        }
+      })();
     });
 
     return button;

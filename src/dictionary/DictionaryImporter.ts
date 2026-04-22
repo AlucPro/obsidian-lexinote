@@ -56,8 +56,7 @@ export class DictionaryImporter {
     let failedCount = 0;
 
     for (const row of parsedRows) {
-      const word =
-        typeof row.word === "string" ? row.word.trim() : String(row.word ?? "").trim();
+      const word = this.stringifyImportValue(row.word).trim();
 
       if (!word) {
         skippedCount += 1;
@@ -238,6 +237,18 @@ export class DictionaryImporter {
       word: line,
       line: index + 1
     }));
+  }
+
+  private stringifyImportValue(value: unknown): string {
+    if (typeof value === "string") {
+      return value;
+    }
+
+    if (typeof value === "number" || typeof value === "boolean") {
+      return String(value);
+    }
+
+    return "";
   }
 
   private emptyResult(errors: ImportResult["errors"]): ImportResult {

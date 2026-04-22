@@ -8,7 +8,7 @@ type ImportFormat = ImportOptions["format"];
 
 export class LexiNoteSettingsTab extends PluginSettingTab {
   private importFile?: File;
-  private importDictionaryName = "Custom Dictionary";
+  private importDictionaryName = "Custom dictionary";
   private importDifficulty = 8;
   private importStatusEl?: HTMLElement;
 
@@ -20,7 +20,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "LexiNote Settings" });
+    new Setting(containerEl).setName("LexiNote settings").setHeading();
 
     new Setting(containerEl)
       .setName("User difficulty")
@@ -93,7 +93,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
   }
 
   private renderImportSection(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: "Custom Dictionary Import" });
+    new Setting(containerEl).setName("Custom dictionary import").setHeading();
 
     new Setting(containerEl)
       .setName("Dictionary file")

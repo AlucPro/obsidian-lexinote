@@ -1,4 +1,4 @@
-import { ItemView, setIcon } from "obsidian";
+import { ItemView, Setting, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { NO_LOCAL_MEANING_TEXT, SIDEBAR_VIEW_TYPE } from "../constants";
 import { LEXINOTE_ICON_ID } from "../icons";
@@ -19,23 +19,27 @@ export class SidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "LexiNote Current Document";
+    return "LexiNote current document";
   }
 
   getIcon(): string {
     return LEXINOTE_ICON_ID;
   }
 
-  async onOpen(): Promise<void> {
+  onOpen(): Promise<void> {
     this.unsubscribe = this.plugin.analysisStore.subscribe((result) => {
       this.currentResult = result;
       this.render();
     });
+
+    return Promise.resolve();
   }
 
-  async onClose(): Promise<void> {
+  onClose(): Promise<void> {
     this.unsubscribe?.();
     this.unsubscribe = undefined;
+
+    return Promise.resolve();
   }
 
   private render(): void {
@@ -46,27 +50,27 @@ export class SidebarView extends ItemView {
     const toolbar = document.createElement("div");
     toolbar.classList.add("lexinote-sidebar-toolbar");
 
-    const heading = document.createElement("h3");
-    heading.classList.add("lexinote-panel-heading");
+    const heading = new Setting(toolbar).setName("").setHeading();
+    heading.settingEl.classList.add("lexinote-panel-heading");
 
     const headingIcon = document.createElement("span");
     headingIcon.classList.add("lexinote-panel-heading-icon");
     setIcon(headingIcon, LEXINOTE_ICON_ID);
 
     const headingText = document.createElement("span");
-    headingText.textContent = "Current Difficult Words";
+    headingText.textContent = "Current difficult words";
 
-    heading.append(headingIcon, headingText);
+    heading.nameEl.replaceChildren(headingIcon, headingText);
 
     const libraryButton = document.createElement("button");
     libraryButton.classList.add("lexinote-sidebar-library-button");
     libraryButton.type = "button";
-    libraryButton.textContent = "My Vocabulary";
+    libraryButton.textContent = "My vocabulary";
     libraryButton.addEventListener("click", () => {
       void this.plugin.activateLibraryView();
     });
 
-    toolbar.append(heading, libraryButton);
+    toolbar.append(libraryButton);
     container.appendChild(toolbar);
 
     if (!this.currentResult) {
