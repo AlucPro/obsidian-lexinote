@@ -37,3 +37,37 @@
 .lexinote-word-meta {
   margin-top: 2px;
 }
+
+.lexinote-hover-card {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-s);
+  color: var(--text-normal);
+  max-width: 260px;
+  padding: 10px;
+  position: fixed;
+  z-index: var(--layer-popover);
+}
+
+.lexinote-hover-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.lexinote-hover-meaning {
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  line-height: 1.4;
+}
+
+.lexinote-hover-meta {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin-top: 6px;
+}
+
+.lexinote-hover-action {
+  margin-top: 8px;
+  width: 100%;
+}

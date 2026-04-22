@@ -4,6 +4,7 @@ import { Analyzer } from "./analysis/Analyzer";
 import { DEFAULT_SETTINGS, SIDEBAR_VIEW_TYPE } from "./constants";
 import { DictionaryService } from "./dictionary/DictionaryService";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
+import { HoverProvider } from "./editor/HoverProvider";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
 import { SidebarView } from "./views/SidebarView";
@@ -25,6 +26,7 @@ export default class LexiNotePlugin extends Plugin {
   analysisStore: AnalysisStore = new AnalysisStore();
   analyzer: Analyzer = new Analyzer();
   highlighter?: EditorHighlighter;
+  hoverProvider?: HoverProvider;
   private reanalyzeTimer?: number;
   private pendingEditorAnalysis?:
     | {
@@ -51,6 +53,7 @@ export default class LexiNotePlugin extends Plugin {
     );
     this.analyzer = new Analyzer();
     this.highlighter = new EditorHighlighter(this.app);
+    this.hoverProvider = new HoverProvider(this);
 
     this.addRibbonIcon("book-open", "LexiNote", () => {
       void this.activateSidebarView();
@@ -166,6 +169,10 @@ export default class LexiNotePlugin extends Plugin {
   registerEditorIntegration(): void {
     if (this.highlighter) {
       this.registerEditorExtension(this.highlighter.buildExtension());
+    }
+
+    if (this.hoverProvider) {
+      this.registerEditorExtension(this.hoverProvider.buildExtension());
     }
   }
 
