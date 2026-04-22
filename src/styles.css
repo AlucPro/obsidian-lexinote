@@ -22,9 +22,20 @@
   padding-bottom: 8px;
 }
 
+.lexinote-word-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
 .lexinote-word-title {
   color: var(--text-normal);
   font-weight: 600;
+}
+
+.lexinote-word-action {
+  flex: 0 0 auto;
 }
 
 .lexinote-word-meaning,

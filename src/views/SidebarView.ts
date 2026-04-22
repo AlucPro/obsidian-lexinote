@@ -1,7 +1,7 @@
 import { ItemView } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { NO_LOCAL_MEANING_TEXT, SIDEBAR_VIEW_TYPE } from "../constants";
-import type { DocumentAnalysisResult } from "../types";
+import type { AnalyzedDifficultWord, DocumentAnalysisResult } from "../types";
 import type LexiNotePlugin from "../main";
 
 export class SidebarView extends ItemView {
@@ -58,9 +58,25 @@ export class SidebarView extends ItemView {
       const item = document.createElement("div");
       item.classList.add("lexinote-word-item");
 
+      const header = document.createElement("div");
+      header.classList.add("lexinote-word-header");
+
       const title = document.createElement("div");
       title.classList.add("lexinote-word-title");
       title.textContent = word.word;
+
+      const favorite = this.plugin.vocabularyStore.get(word.normalizedWord);
+      const button = document.createElement("button");
+      button.classList.add("lexinote-word-action");
+      button.type = "button";
+      button.textContent = favorite ? "取消收藏" : "收藏";
+      button.setAttribute(
+        "aria-label",
+        `${favorite ? "取消收藏" : "收藏"} ${word.word}`
+      );
+      button.addEventListener("click", () => {
+        this.toggleFavorite(word);
+      });
 
       const meaning = document.createElement("div");
       meaning.classList.add("lexinote-word-meaning");
@@ -68,13 +84,31 @@ export class SidebarView extends ItemView {
 
       const meta = document.createElement("div");
       meta.classList.add("lexinote-word-meta");
-      meta.textContent = `${word.dictionaryName} · ${word.difficulty}`;
+      meta.textContent = `${word.dictionaryName} · ${word.difficulty}${
+        favorite ? " · 已收藏" : ""
+      }`;
 
-      item.append(title, meaning, meta);
+      header.append(title, button);
+      item.append(header, meaning, meta);
       list.appendChild(item);
     }
 
     container.appendChild(list);
+  }
+
+  private toggleFavorite(word: AnalyzedDifficultWord): void {
+    if (this.plugin.vocabularyStore.get(word.normalizedWord)) {
+      this.plugin.vocabularyStore.remove(word.normalizedWord);
+    } else {
+      this.plugin.vocabularyStore.add(
+        word.occurrences[0].dictionaryEntry,
+        word.word
+      );
+    }
+
+    if (this.currentResult) {
+      void this.plugin.reanalyzeActiveDocument("favorites-change");
+    }
   }
 
   private appendEmptyState(container: Element, message: string): void {
