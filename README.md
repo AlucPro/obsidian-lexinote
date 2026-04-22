@@ -17,7 +17,6 @@ LexiNote automatically highlights difficult English words based on your level an
 - Vocabulary Library search, sorting, known markers, and deletion
 - Built-in CET4 / CET6 dictionaries derived from ECDICT
 - JSON / CSV / TXT custom dictionary import
-- Optional fallback definition endpoint for words without local meanings
 
 ## Requirements
 
@@ -170,7 +169,7 @@ scrutiny
 ```
 
 TXT imports do not include local meanings, so hover cards and lists show
-`暂无本地释义` unless a fallback definition endpoint is enabled.
+`暂无本地释义`.
 
 ### Test Fixtures
 
@@ -182,31 +181,7 @@ tests/fixtures/imports/custom-writing.csv
 tests/fixtures/imports/custom-txt-words.txt
 ```
 
-TXT imports do not include local meanings, so they are useful for validating the fallback definition flow.
-
-## Fallback Endpoint Mock
-
-Start a local fallback definition mock:
-
-```bash
-node -e 'const http=require("http");const meanings={meticulous:"非常细致的；一丝不苟的",scrutiny:"仔细审查；认真检查",resilient:"有恢复力的；有韧性的"};http.createServer((req,res)=>{res.setHeader("Access-Control-Allow-Origin","*");res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");res.setHeader("Access-Control-Allow-Methods","POST, OPTIONS");if(req.method==="OPTIONS"){res.writeHead(204);return res.end();}if(req.method!=="POST"||req.url!=="/lookup"){res.writeHead(404);return res.end("not found");}let body="";req.on("data",c=>body+=c);req.on("end",()=>{const word=(JSON.parse(body||"{}").word||"").toLowerCase();res.setHeader("Content-Type","application/json");res.end(JSON.stringify({meaning:meanings[word]||`Mock definition for ${word}`}));});}).listen(8787,"127.0.0.1",()=>console.log("LexiNote fallback mock: http://127.0.0.1:8787/lookup"));'
-```
-
-Then configure LexiNote settings:
-
-```text
-Fallback API: on
-Fallback endpoint: http://127.0.0.1:8787/lookup
-Fallback API key: empty
-```
-
-The fallback client sends only:
-
-```json
-{
-  "word": "meticulous"
-}
-```
+TXT imports do not include local meanings, so they are useful for validating the no-local-meaning display.
 
 ## Release
 

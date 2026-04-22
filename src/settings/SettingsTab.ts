@@ -89,44 +89,6 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         });
       });
 
-    new Setting(containerEl)
-      .setName("Fallback API")
-      .setDesc("Allow remote lookup for words without local meanings.")
-      .addToggle((toggle) => {
-        toggle.setValue(this.plugin.settings.fallbackApiEnabled);
-        toggle.onChange((value) => {
-          void this.plugin.updateSettings({
-            fallbackApiEnabled: value
-          });
-        });
-      });
-
-    new Setting(containerEl)
-      .setName("Fallback endpoint")
-      .setDesc("Endpoint used only when fallback API is enabled.")
-      .addText((text) => {
-        text.setPlaceholder("https://example.com/lookup");
-        text.setValue(this.plugin.settings.fallbackApiEndpoint ?? "");
-        text.onChange((value) => {
-          void this.plugin.updateSettings({
-            fallbackApiEndpoint: value
-          });
-        });
-      });
-
-    new Setting(containerEl)
-      .setName("Fallback API key")
-      .setDesc("Optional bearer token for the fallback endpoint.")
-      .addText((text) => {
-        text.inputEl.type = "password";
-        text.setValue(this.plugin.settings.fallbackApiKey ?? "");
-        text.onChange((value) => {
-          void this.plugin.updateSettings({
-            fallbackApiKey: value
-          });
-        });
-      });
-
     this.renderImportSection(containerEl);
   }
 
