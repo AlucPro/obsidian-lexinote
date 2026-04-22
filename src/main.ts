@@ -12,6 +12,8 @@ import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
 import { SidebarView } from "./views/SidebarView";
 import { VocabularyLibraryView } from "./views/VocabularyLibraryView";
+import cet4Dictionary from "../resources/dictionaries/cet4.json";
+import cet6Dictionary from "../resources/dictionaries/cet6.json";
 import type {
   CustomDictionarySnapshot,
   DictionaryEntry,
@@ -365,26 +367,12 @@ export default class LexiNotePlugin extends Plugin {
   }
 
   private async loadBuiltInDictionaryFixtures(): Promise<DictionaryEntry[]> {
-    const [cet4Entries, cet6Entries] = await Promise.all([
-      this.loadDictionaryResource("resources/dictionaries/cet4.json"),
-      this.loadDictionaryResource("resources/dictionaries/cet6.json")
-    ]);
-
-    return [...cet4Entries, ...cet6Entries];
+    return [
+      ...(cet4Dictionary as unknown[]),
+      ...(cet6Dictionary as unknown[])
+    ].filter(this.isDictionaryEntry);
   }
 
-  private async loadDictionaryResource(path: string): Promise<DictionaryEntry[]> {
-    const pluginDirectory = this.manifest.dir;
-    const resourcePath = pluginDirectory ? `${pluginDirectory}/${path}` : path;
-    const content = await this.app.vault.adapter.read(resourcePath);
-    const parsedContent: unknown = JSON.parse(content);
-
-    if (!Array.isArray(parsedContent)) {
-      throw new Error(`Dictionary resource must be an array: ${path}`);
-    }
-
-    return parsedContent.filter(this.isDictionaryEntry);
-  }
 
   private isDictionaryEntry(entry: unknown): entry is DictionaryEntry {
     if (!entry || typeof entry !== "object") {

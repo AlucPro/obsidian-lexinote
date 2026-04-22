@@ -60,6 +60,13 @@
   font-size: var(--font-ui-small);
 }
 
+.lexinote-word-meaning {
+  line-height: 1.45;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
 .lexinote-word-meta {
   margin-top: 2px;
 }
@@ -70,9 +77,11 @@
   border-radius: 6px;
   box-shadow: var(--shadow-s);
   color: var(--text-normal);
-  max-width: 260px;
+  max-width: min(420px, calc(100vw - 16px));
+  min-width: 180px;
   padding: 10px;
   position: fixed;
+  width: max-content;
   z-index: var(--layer-popover);
 }
 
@@ -85,6 +94,9 @@
   color: var(--text-normal);
   font-size: var(--font-ui-small);
   line-height: 1.4;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .lexinote-hover-meta {

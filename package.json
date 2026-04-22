@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "generate:dictionaries": "node scripts/generate-built-in-dictionaries.mjs",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "test": "vitest run"
   },

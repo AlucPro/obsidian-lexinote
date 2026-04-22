@@ -1,6 +1,7 @@
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { NO_LOCAL_MEANING_TEXT } from "../constants";
+import { formatMeaningText } from "../ui/meaningText";
 import type {
   AnalyzedDifficultWord,
   AnalyzedWordOccurrence,
@@ -128,7 +129,10 @@ export class HoverProvider {
 
     const meaning = document.createElement("div");
     meaning.classList.add("lexinote-hover-meaning");
-    meaning.textContent = match.difficultWord.meaning || NO_LOCAL_MEANING_TEXT;
+    meaning.textContent = formatMeaningText(
+      match.difficultWord.meaning,
+      NO_LOCAL_MEANING_TEXT
+    );
 
     const fallbackStatus = document.createElement("div");
     fallbackStatus.classList.add("lexinote-hover-fallback-status");
@@ -208,7 +212,10 @@ export class HoverProvider {
         .lookup(word, this.plugin.settings)
         .then((result) => {
           if (result.meaning) {
-            meaningEl.textContent = result.meaning;
+            meaningEl.textContent = formatMeaningText(
+              result.meaning,
+              NO_LOCAL_MEANING_TEXT
+            );
             statusEl.textContent = "远程释义";
           } else {
             statusEl.textContent = result.error ?? "查询失败";

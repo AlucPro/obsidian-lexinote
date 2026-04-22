@@ -1,6 +1,7 @@
 import { ItemView } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { NO_LOCAL_MEANING_TEXT, SIDEBAR_VIEW_TYPE } from "../constants";
+import { formatMeaningText } from "../ui/meaningText";
 import type { AnalyzedDifficultWord, DocumentAnalysisResult } from "../types";
 import type LexiNotePlugin from "../main";
 
@@ -93,7 +94,7 @@ export class SidebarView extends ItemView {
 
       const meaning = document.createElement("div");
       meaning.classList.add("lexinote-word-meaning");
-      meaning.textContent = word.meaning || NO_LOCAL_MEANING_TEXT;
+      meaning.textContent = formatMeaningText(word.meaning, NO_LOCAL_MEANING_TEXT);
 
       const meta = document.createElement("div");
       meta.classList.add("lexinote-word-meta");
