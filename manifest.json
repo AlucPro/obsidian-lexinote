@@ -1,0 +1,10 @@
+{
+  "id": "lexinote",
+  "name": "LexiNote",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Highlight difficult English words and learn vocabulary while writing.",
+  "author": "AlucPro",
+  "authorUrl": "https://github.com/AlucPro/obsidian-lexinote",
+  "isDesktopOnly": false
+}
