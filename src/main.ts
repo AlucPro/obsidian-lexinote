@@ -1,9 +1,11 @@
 import { Notice, Plugin } from "obsidian";
 import { Analyzer } from "./analysis/Analyzer";
-import { DEFAULT_SETTINGS } from "./constants";
+import { DEFAULT_SETTINGS, SIDEBAR_VIEW_TYPE } from "./constants";
 import { DictionaryService } from "./dictionary/DictionaryService";
+import { EditorHighlighter } from "./editor/EditorHighlighter";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
+import { SidebarView } from "./views/SidebarView";
 import type {
   CustomDictionarySnapshot,
   DictionaryEntry,
@@ -21,7 +23,8 @@ export default class LexiNotePlugin extends Plugin {
   vocabularyStore: VocabularyStore = new VocabularyStore(this.favorites);
   analysisStore: AnalysisStore = new AnalysisStore();
   analyzer: Analyzer = new Analyzer();
-  private reanalyzeTimer?: ReturnType<typeof window.setTimeout>;
+  highlighter?: EditorHighlighter;
+  private reanalyzeTimer?: number;
 
   async onload(): Promise<void> {
     await this.loadPluginData();
@@ -40,9 +43,10 @@ export default class LexiNotePlugin extends Plugin {
       }
     );
     this.analyzer = new Analyzer();
+    this.highlighter = new EditorHighlighter(this.app);
 
     this.addRibbonIcon("book-open", "LexiNote", () => {
-      void this.reanalyzeActiveDocument("startup");
+      void this.activateSidebarView();
     });
 
     this.addCommand({
@@ -50,6 +54,14 @@ export default class LexiNotePlugin extends Plugin {
       name: "Reanalyze active document",
       callback: () => {
         void this.reanalyzeActiveDocument("active-file-change");
+      }
+    });
+
+    this.addCommand({
+      id: "open-current-document-word-list",
+      name: "Open current document word list",
+      callback: () => {
+        void this.activateSidebarView();
       }
     });
 
@@ -106,6 +118,7 @@ export default class LexiNotePlugin extends Plugin {
 
     if (!activeFile || activeFile.extension !== "md") {
       this.analysisStore.setCurrent(undefined);
+      this.highlighter?.update(undefined, this.settings);
       return;
     }
 
@@ -119,6 +132,7 @@ export default class LexiNotePlugin extends Plugin {
     });
 
     this.analysisStore.setCurrent(result);
+    this.highlighter?.update(result, this.settings);
 
     if (reason === "startup" || reason === "active-file-change") {
       new Notice(`LexiNote found ${result.difficultWords.length} difficult words.`);
@@ -126,11 +140,39 @@ export default class LexiNotePlugin extends Plugin {
   }
 
   registerViews(): void {
-    // Sidebar and Vocabulary Library are implemented in later roadmap steps.
+    this.registerView(SIDEBAR_VIEW_TYPE, (leaf) => new SidebarView(leaf, this));
   }
 
   registerEditorIntegration(): void {
-    // Editor highlighter and hover provider are implemented in later roadmap steps.
+    if (this.highlighter) {
+      this.registerEditorExtension(this.highlighter.buildExtension());
+    }
+  }
+
+  async activateSidebarView(): Promise<void> {
+    const existingLeaves = this.app.workspace.getLeavesOfType(SIDEBAR_VIEW_TYPE);
+
+    if (existingLeaves.length === 0) {
+      const leaf = this.app.workspace.getRightLeaf(false);
+
+      if (!leaf) {
+        new Notice("Unable to open LexiNote sidebar.");
+        return;
+      }
+
+      await leaf.setViewState({
+        type: SIDEBAR_VIEW_TYPE,
+        active: true
+      });
+    }
+
+    const sidebarLeaf = this.app.workspace.getLeavesOfType(SIDEBAR_VIEW_TYPE)[0];
+
+    if (sidebarLeaf) {
+      this.app.workspace.revealLeaf(sidebarLeaf);
+    }
+
+    await this.reanalyzeActiveDocument("active-file-change");
   }
 
   private hydratePluginData(

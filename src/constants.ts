@@ -26,3 +26,5 @@ export const BUILT_IN_DICTIONARIES = [
 ] as const;
 
 export const NO_LOCAL_MEANING_TEXT = "暂无本地释义";
+
+export const SIDEBAR_VIEW_TYPE = "lexinote-current-document";

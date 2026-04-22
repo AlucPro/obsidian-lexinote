@@ -1,3 +1,39 @@
 .lexinote-highlight {
   background-color: var(--lexinote-highlight-color, #fff3a3);
 }
+
+.lexinote-sidebar {
+  padding: 12px;
+}
+
+.lexinote-sidebar h3 {
+  margin: 0 0 12px;
+  font-size: var(--font-ui-medium);
+}
+
+.lexinote-word-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lexinote-word-item {
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 8px;
+}
+
+.lexinote-word-title {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.lexinote-word-meaning,
+.lexinote-word-meta,
+.lexinote-empty-state {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.lexinote-word-meta {
+  margin-top: 2px;
+}
