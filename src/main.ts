@@ -6,6 +6,7 @@ import { DictionaryService } from "./dictionary/DictionaryService";
 import { DictionaryImporter } from "./dictionary/DictionaryImporter";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
 import { HoverProvider } from "./editor/HoverProvider";
+import { FallbackDefinitionClient } from "./fallback/FallbackDefinitionClient";
 import { LexiNoteSettingsTab } from "./settings/SettingsTab";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
@@ -33,6 +34,7 @@ export default class LexiNotePlugin extends Plugin {
   analyzer: Analyzer = new Analyzer();
   highlighter?: EditorHighlighter;
   hoverProvider?: HoverProvider;
+  fallbackClient: FallbackDefinitionClient = new FallbackDefinitionClient();
   private reanalyzeTimer?: number;
   private pendingEditorAnalysis?:
     | {
@@ -59,6 +61,7 @@ export default class LexiNotePlugin extends Plugin {
       }
     );
     this.analyzer = new Analyzer();
+    this.fallbackClient = new FallbackDefinitionClient();
     this.highlighter = new EditorHighlighter(this.app);
     this.hoverProvider = new HoverProvider(this);
 

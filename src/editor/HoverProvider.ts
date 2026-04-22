@@ -24,20 +24,25 @@ export class HoverProvider {
       mousemove: (event, view) => {
         this.handleMouseMove(event, view);
       },
-      mouseleave: () => {
-        this.hideCard();
+      mouseleave: (event) => {
+        if (!this.isCardTarget(event.relatedTarget)) {
+          this.hideCard();
+        }
       }
     });
   }
 
   private handleMouseMove(event: MouseEvent, view: EditorView): void {
     const target = event.target;
+    const highlightEl =
+      target instanceof HTMLElement
+        ? target.closest<HTMLElement>(".lexinote-highlight")
+        : null;
 
-    if (
-      !(target instanceof HTMLElement) ||
-      !target.closest(".lexinote-highlight")
-    ) {
-      this.hideCard();
+    if (!highlightEl) {
+      if (!this.isCardTarget(target)) {
+        this.hideCard();
+      }
       return;
     }
 
@@ -68,12 +73,12 @@ export class HoverProvider {
     const nextKey = `${match.occurrence.normalizedWord}:${match.occurrence.range.from}:${match.occurrence.range.to}`;
 
     if (this.currentKey === nextKey && this.cardEl) {
-      this.positionCard(event);
+      this.positionCard(highlightEl);
       return;
     }
 
     this.currentKey = nextKey;
-    this.showCard(event, view, result, match);
+    this.showCard(highlightEl, view, result, match);
   }
 
   private findHoverMatch(
@@ -97,7 +102,7 @@ export class HoverProvider {
   }
 
   private showCard(
-    event: MouseEvent,
+    anchorEl: HTMLElement,
     view: EditorView,
     result: DocumentAnalysisResult,
     match: HoverMatch
@@ -107,6 +112,11 @@ export class HoverProvider {
     const favorite = this.plugin.vocabularyStore.get(match.occurrence.normalizedWord);
     const card = document.createElement("div");
     card.classList.add("lexinote-hover-card");
+    card.addEventListener("mouseleave", (event) => {
+      if (!this.isHighlightTarget(event.relatedTarget)) {
+        this.hideCard();
+      }
+    });
     card.addEventListener("mousedown", (mouseEvent) => {
       mouseEvent.preventDefault();
       mouseEvent.stopPropagation();
@@ -119,6 +129,16 @@ export class HoverProvider {
     const meaning = document.createElement("div");
     meaning.classList.add("lexinote-hover-meaning");
     meaning.textContent = match.difficultWord.meaning || NO_LOCAL_MEANING_TEXT;
+
+    const fallbackStatus = document.createElement("div");
+    fallbackStatus.classList.add("lexinote-hover-fallback-status");
+
+    const fallbackButton = this.createFallbackButton(
+      match.occurrence.word,
+      match.difficultWord.meaning,
+      meaning,
+      fallbackStatus
+    );
 
     const meta = document.createElement("div");
     meta.classList.add("lexinote-hover-meta");
@@ -145,23 +165,82 @@ export class HoverProvider {
       this.hideCard();
     });
 
-    card.append(title, meaning, meta, button);
+    card.append(title, meaning);
+
+    if (fallbackButton) {
+      card.append(fallbackButton, fallbackStatus);
+    } else if (!match.difficultWord.meaning && this.plugin.settings.fallbackApiEnabled) {
+      fallbackStatus.textContent = "fallback endpoint is not configured";
+      card.append(fallbackStatus);
+    }
+
+    card.append(meta, button);
     document.body.appendChild(card);
     this.cardEl = card;
-    this.positionCard(event);
+    this.positionCard(anchorEl);
   }
 
-  private positionCard(event: MouseEvent): void {
+  private createFallbackButton(
+    word: string,
+    localMeaning: string | undefined,
+    meaningEl: HTMLElement,
+    statusEl: HTMLElement
+  ): HTMLButtonElement | undefined {
+    if (localMeaning || !this.plugin.settings.fallbackApiEnabled) {
+      return undefined;
+    }
+
+    if (!this.plugin.settings.fallbackApiEndpoint?.trim()) {
+      return undefined;
+    }
+
+    const button = document.createElement("button");
+    button.classList.add("lexinote-hover-fallback-action");
+    button.type = "button";
+    button.textContent = "查询释义";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      button.disabled = true;
+      statusEl.textContent = "查询中...";
+
+      void this.plugin.fallbackClient
+        .lookup(word, this.plugin.settings)
+        .then((result) => {
+          if (result.meaning) {
+            meaningEl.textContent = result.meaning;
+            statusEl.textContent = "远程释义";
+          } else {
+            statusEl.textContent = result.error ?? "查询失败";
+          }
+        })
+        .finally(() => {
+          button.disabled = false;
+        });
+    });
+
+    return button;
+  }
+
+  private positionCard(anchorEl: HTMLElement): void {
     if (!this.cardEl) {
       return;
     }
 
-    const offset = 12;
+    const viewportMargin = 8;
+    const anchorRect = anchorEl.getBoundingClientRect();
     const rect = this.cardEl.getBoundingClientRect();
-    const maxLeft = window.innerWidth - rect.width - offset;
-    const maxTop = window.innerHeight - rect.height - offset;
-    const left = Math.max(offset, Math.min(event.clientX + offset, maxLeft));
-    const top = Math.max(offset, Math.min(event.clientY + offset, maxTop));
+    const maxLeft = window.innerWidth - rect.width - viewportMargin;
+    const belowTop = anchorRect.bottom;
+    const aboveTop = anchorRect.top - rect.height;
+    const top =
+      belowTop + rect.height <= window.innerHeight
+        ? belowTop
+        : Math.max(viewportMargin, aboveTop);
+    const left = Math.max(
+      viewportMargin,
+      Math.min(anchorRect.left, Math.max(viewportMargin, maxLeft))
+    );
 
     this.cardEl.style.left = `${left}px`;
     this.cardEl.style.top = `${top}px`;
@@ -174,5 +253,16 @@ export class HoverProvider {
     if (clearKey) {
       this.currentKey = undefined;
     }
+  }
+
+  private isCardTarget(target: EventTarget | null): boolean {
+    return target instanceof Node && Boolean(this.cardEl?.contains(target));
+  }
+
+  private isHighlightTarget(target: EventTarget | null): boolean {
+    return (
+      target instanceof HTMLElement &&
+      Boolean(target.closest(".lexinote-highlight"))
+    );
   }
 }
