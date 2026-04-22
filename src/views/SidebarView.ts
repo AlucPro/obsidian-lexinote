@@ -1,6 +1,7 @@
-import { ItemView } from "obsidian";
+import { ItemView, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { NO_LOCAL_MEANING_TEXT, SIDEBAR_VIEW_TYPE } from "../constants";
+import { LEXINOTE_ICON_ID } from "../icons";
 import { formatMeaningText } from "../ui/meaningText";
 import type { AnalyzedDifficultWord, DocumentAnalysisResult } from "../types";
 import type LexiNotePlugin from "../main";
@@ -19,6 +20,10 @@ export class SidebarView extends ItemView {
 
   getDisplayText(): string {
     return "LexiNote Current Document";
+  }
+
+  getIcon(): string {
+    return LEXINOTE_ICON_ID;
   }
 
   async onOpen(): Promise<void> {
@@ -42,7 +47,16 @@ export class SidebarView extends ItemView {
     toolbar.classList.add("lexinote-sidebar-toolbar");
 
     const heading = document.createElement("h3");
-    heading.textContent = "Current Difficult Words";
+    heading.classList.add("lexinote-panel-heading");
+
+    const headingIcon = document.createElement("span");
+    headingIcon.classList.add("lexinote-panel-heading-icon");
+    setIcon(headingIcon, LEXINOTE_ICON_ID);
+
+    const headingText = document.createElement("span");
+    headingText.textContent = "Current Difficult Words";
+
+    heading.append(headingIcon, headingText);
 
     const libraryButton = document.createElement("button");
     libraryButton.classList.add("lexinote-sidebar-library-button");

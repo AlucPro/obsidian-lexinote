@@ -1,6 +1,7 @@
-import { ItemView } from "obsidian";
+import { ItemView, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { LIBRARY_VIEW_TYPE, NO_LOCAL_MEANING_TEXT } from "../constants";
+import { LEXINOTE_ICON_ID } from "../icons";
 import { formatMeaningText } from "../ui/meaningText";
 import type { FavoriteWord } from "../types";
 import type { VocabularySortMode } from "../stores/VocabularyStore";
@@ -25,6 +26,10 @@ export class VocabularyLibraryView extends ItemView {
     return "LexiNote Vocabulary Library";
   }
 
+  getIcon(): string {
+    return LEXINOTE_ICON_ID;
+  }
+
   async onOpen(): Promise<void> {
     this.renderShell();
     this.unsubscribe = this.plugin.vocabularyStore.subscribe(() => {
@@ -47,7 +52,16 @@ export class VocabularyLibraryView extends ItemView {
     container.classList.add("lexinote-library");
 
     const heading = document.createElement("h3");
-    heading.textContent = "My Vocabulary";
+    heading.classList.add("lexinote-panel-heading");
+
+    const headingIcon = document.createElement("span");
+    headingIcon.classList.add("lexinote-panel-heading-icon");
+    setIcon(headingIcon, LEXINOTE_ICON_ID);
+
+    const headingText = document.createElement("span");
+    headingText.textContent = "My Vocabulary";
+
+    heading.append(headingIcon, headingText);
 
     const controls = this.createControls();
     this.listContainerEl = document.createElement("div");

@@ -7,6 +7,7 @@ import { DictionaryImporter } from "./dictionary/DictionaryImporter";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
 import { HoverProvider } from "./editor/HoverProvider";
 import { FallbackDefinitionClient } from "./fallback/FallbackDefinitionClient";
+import { LEXINOTE_ICON_ID } from "./icons";
 import { LexiNoteSettingsTab } from "./settings/SettingsTab";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
@@ -67,7 +68,7 @@ export default class LexiNotePlugin extends Plugin {
     this.highlighter = new EditorHighlighter(this.app);
     this.hoverProvider = new HoverProvider(this);
 
-    this.addRibbonIcon("book-open", "LexiNote", () => {
+    this.addRibbonIcon(LEXINOTE_ICON_ID, "LexiNote", () => {
       void this.activateSidebarView();
     });
 
