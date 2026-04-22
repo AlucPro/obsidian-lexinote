@@ -15,7 +15,7 @@ LexiNote automatically highlights difficult English words based on your level an
 - Add words to a personal vocabulary library
 - Current document word list
 - Vocabulary Library search, sorting, known markers, and deletion
-- Built-in CET4 / CET6 fixture dictionaries
+- Built-in CET4 / CET6 dictionaries derived from ECDICT
 - JSON / CSV / TXT custom dictionary import
 - Optional fallback definition endpoint for words without local meanings
 
@@ -69,7 +69,6 @@ Replace `/path/to/TestVault` with your local Obsidian vault path:
 ```bash
 mkdir -p "/path/to/TestVault/.obsidian/plugins/lexinote"
 cp manifest.json main.js styles.css "/path/to/TestVault/.obsidian/plugins/lexinote/"
-cp -R resources "/path/to/TestVault/.obsidian/plugins/lexinote/"
 ```
 
 The plugin directory should contain:
@@ -79,10 +78,6 @@ The plugin directory should contain:
   manifest.json
   main.js
   styles.css
-  resources/
-    dictionaries/
-      cet4.json
-      cet6.json
 ```
 
 ## Enable In Obsidian
@@ -123,7 +118,61 @@ Expected behavior:
 
 For the full manual acceptance checklist, see [docs/4_LOCAL_TESTING.md](docs/4_LOCAL_TESTING.md).
 
-## Custom Dictionary Import Test Fixtures
+## Custom Dictionary Import
+
+LexiNote can import custom dictionaries from `JSON`, `CSV`, and `TXT` files.
+Imported entries are stored locally in your Obsidian plugin data. The import UI
+asks for a dictionary name and difficulty, and every imported word inherits those
+values.
+
+Custom dictionaries are language-flexible. LexiNote only needs the source word to
+be English, while `meaning` can be Chinese, Japanese, Korean, French, or any
+other target language you want to review. For example, the same English word can
+be imported as English -> Chinese or English -> Japanese by changing only the
+meaning text.
+
+### JSON
+
+Use an array of objects with `word` and optional `meaning` fields:
+
+```json
+[
+  {
+    "word": "meticulous",
+    "meaning": "非常细致的；一丝不苟的"
+  },
+  {
+    "word": "resilient",
+    "meaning": "回復力のある；しなやかな"
+  }
+]
+```
+
+### CSV
+
+Use a header row with `word,meaning`:
+
+```csv
+word,meaning
+nuance,细微差别
+cohesive,まとまりのある；結束した
+elaborate,详细说明；精心制作的
+```
+
+### TXT
+
+Use one English word per line:
+
+```text
+meticulous
+resilient
+scrutiny
+```
+
+TXT imports do not include local meanings, so hover cards and lists show
+`暂无本地释义` unless a fallback definition endpoint is enabled.
+
+### Test Fixtures
 
 Sample files for local custom dictionary import testing are available in:
 
