@@ -102,3 +102,11 @@ export interface DocumentAnalysisResult {
   updatedAt: number;
   difficultWords: AnalyzedDifficultWord[];
 }
+
+export type RefreshReason =
+  | "startup"
+  | "editor-change"
+  | "active-file-change"
+  | "settings-change"
+  | "dictionary-change"
+  | "favorites-change";
