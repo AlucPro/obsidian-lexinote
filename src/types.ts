@@ -2,6 +2,11 @@ export type DictionaryDifficulty = number;
 
 export type DictionarySource = "built-in" | "custom";
 
+export type DictionarySourceMode =
+  | "built-in-only"
+  | "custom-only"
+  | "built-in-custom";
+
 export interface DictionaryEntry {
   word: string;
   normalizedWord: string;
@@ -53,7 +58,7 @@ export interface CustomDictionarySnapshot {
 export interface LexiNoteSettings {
   userDifficulty: DictionaryDifficulty;
   highlightColor: string;
-  dictionarySource: "built-in" | "custom";
+  dictionarySource: DictionarySourceMode;
   hideKnownWords: boolean;
   fallbackApiEnabled: boolean;
   fallbackApiEndpoint?: string;

@@ -5,7 +5,7 @@ export const DEFAULT_USER_DIFFICULTY: DictionaryDifficulty = 4;
 export const DEFAULT_SETTINGS: LexiNoteSettings = {
   userDifficulty: DEFAULT_USER_DIFFICULTY,
   highlightColor: "#fff3a3",
-  dictionarySource: "built-in",
+  dictionarySource: "built-in-only",
   hideKnownWords: true,
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",

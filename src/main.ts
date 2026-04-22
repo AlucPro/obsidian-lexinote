@@ -3,8 +3,10 @@ import type { Editor, MarkdownFileInfo } from "obsidian";
 import { Analyzer } from "./analysis/Analyzer";
 import { DEFAULT_SETTINGS, LIBRARY_VIEW_TYPE, SIDEBAR_VIEW_TYPE } from "./constants";
 import { DictionaryService } from "./dictionary/DictionaryService";
+import { DictionaryImporter } from "./dictionary/DictionaryImporter";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
 import { HoverProvider } from "./editor/HoverProvider";
+import { LexiNoteSettingsTab } from "./settings/SettingsTab";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
 import { SidebarView } from "./views/SidebarView";
@@ -13,16 +15,19 @@ import type {
   CustomDictionarySnapshot,
   DictionaryEntry,
   FavoriteWord,
+  ImportResult,
   LexiNotePluginData,
   LexiNoteSettings,
   RefreshReason
 } from "./types";
+import type { ImportOptions } from "./dictionary/DictionaryImporter";
 
 export default class LexiNotePlugin extends Plugin {
   settings: LexiNoteSettings = { ...DEFAULT_SETTINGS };
   favorites: Record<string, FavoriteWord> = {};
   customDictionarySnapshot?: CustomDictionarySnapshot;
   dictionaryService: DictionaryService = new DictionaryService();
+  dictionaryImporter: DictionaryImporter = new DictionaryImporter();
   vocabularyStore: VocabularyStore = new VocabularyStore(this.favorites);
   analysisStore: AnalysisStore = new AnalysisStore();
   analyzer: Analyzer = new Analyzer();
@@ -40,6 +45,7 @@ export default class LexiNotePlugin extends Plugin {
     await this.loadPluginData();
 
     this.dictionaryService = new DictionaryService();
+    this.dictionaryImporter = new DictionaryImporter();
     this.dictionaryService.loadBuiltIn(await this.loadBuiltInDictionaryFixtures());
     this.dictionaryService.setCustomSnapshot(this.customDictionarySnapshot);
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
@@ -86,6 +92,7 @@ export default class LexiNotePlugin extends Plugin {
 
     this.registerViews();
     this.registerEditorIntegration();
+    this.addSettingTab(new LexiNoteSettingsTab(this.app, this));
 
     this.registerEvent(
       this.app.workspace.on("file-open", () => {
@@ -130,6 +137,47 @@ export default class LexiNotePlugin extends Plugin {
   async refreshDictionary(): Promise<void> {
     this.dictionaryService.setCustomSnapshot(this.customDictionarySnapshot);
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
+  }
+
+  async updateSettings(settings: Partial<LexiNoteSettings>): Promise<void> {
+    this.settings = {
+      ...this.settings,
+      ...settings
+    };
+
+    if (!Number.isFinite(this.settings.userDifficulty) || this.settings.userDifficulty <= 0) {
+      this.settings.userDifficulty = DEFAULT_SETTINGS.userDifficulty;
+    }
+
+    if (!this.settings.highlightColor.trim()) {
+      this.settings.highlightColor = DEFAULT_SETTINGS.highlightColor;
+    }
+
+    await this.savePluginData();
+    await this.refreshDictionary();
+    await this.reanalyzeActiveDocument("settings-change");
+  }
+
+  async importCustomDictionary(options: ImportOptions): Promise<ImportResult> {
+    const result = this.dictionaryImporter.import(options);
+
+    if (!result.snapshot) {
+      new Notice("Dictionary import failed.");
+      return result;
+    }
+
+    this.customDictionarySnapshot = result.snapshot;
+    this.settings = {
+      ...this.settings,
+      dictionarySource: "built-in-custom"
+    };
+
+    await this.savePluginData();
+    await this.refreshDictionary();
+    await this.reanalyzeActiveDocument("dictionary-change");
+    new Notice(`Imported ${result.successCount} words into LexiNote.`);
+
+    return result;
   }
 
   async reanalyzeActiveDocument(reason: RefreshReason): Promise<void> {
@@ -259,9 +307,9 @@ export default class LexiNotePlugin extends Plugin {
       hydratedSettings.highlightColor = DEFAULT_SETTINGS.highlightColor;
     }
 
-    if (!["built-in", "custom"].includes(hydratedSettings.dictionarySource)) {
-      hydratedSettings.dictionarySource = DEFAULT_SETTINGS.dictionarySource;
-    }
+    hydratedSettings.dictionarySource = this.hydrateDictionarySource(
+      hydratedSettings.dictionarySource
+    );
 
     return {
       settings: hydratedSettings,
@@ -281,6 +329,26 @@ export default class LexiNotePlugin extends Plugin {
     }
 
     return favorites;
+  }
+
+  private hydrateDictionarySource(value: unknown): LexiNoteSettings["dictionarySource"] {
+    if (value === "built-in") {
+      return "built-in-only";
+    }
+
+    if (value === "custom") {
+      return "built-in-custom";
+    }
+
+    if (
+      value === "built-in-only" ||
+      value === "custom-only" ||
+      value === "built-in-custom"
+    ) {
+      return value;
+    }
+
+    return DEFAULT_SETTINGS.dictionarySource;
   }
 
   private hydrateCustomDictionarySnapshot(

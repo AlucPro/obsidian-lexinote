@@ -19,9 +19,16 @@ export class DictionaryService {
   }
 
   rebuildEffectiveDictionary(settings: LexiNoteSettings): void {
-    const nextEntries = new Map(this.builtInEntries);
+    const nextEntries =
+      settings.dictionarySource === "custom-only"
+        ? new Map<string, DictionaryEntry>()
+        : new Map(this.builtInEntries);
 
-    if (settings.dictionarySource === "custom" && this.customSnapshot) {
+    if (
+      (settings.dictionarySource === "custom-only" ||
+        settings.dictionarySource === "built-in-custom") &&
+      this.customSnapshot
+    ) {
       for (const entry of this.customSnapshot.entries) {
         if (this.isValidEntry(entry)) {
           nextEntries.set(entry.normalizedWord, entry);
