@@ -1,0 +1,42 @@
+[
+  {
+    "word": "peculiar",
+    "normalizedWord": "peculiar",
+    "dictionaryName": "CET6",
+    "difficulty": 6,
+    "meaning": "奇怪的；独特的",
+    "source": "built-in"
+  },
+  {
+    "word": "robust",
+    "normalizedWord": "robust",
+    "dictionaryName": "CET6",
+    "difficulty": 6,
+    "meaning": "强健的；稳健的",
+    "source": "built-in"
+  },
+  {
+    "word": "comprehensive",
+    "normalizedWord": "comprehensive",
+    "dictionaryName": "CET6",
+    "difficulty": 6,
+    "meaning": "全面的；综合的",
+    "source": "built-in"
+  },
+  {
+    "word": "sophisticated",
+    "normalizedWord": "sophisticated",
+    "dictionaryName": "CET6",
+    "difficulty": 6,
+    "meaning": "复杂的；老练的",
+    "source": "built-in"
+  },
+  {
+    "word": "subsequent",
+    "normalizedWord": "subsequent",
+    "dictionaryName": "CET6",
+    "difficulty": 6,
+    "meaning": "随后的；后来的",
+    "source": "built-in"
+  }
+]

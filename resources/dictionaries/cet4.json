@@ -1,0 +1,42 @@
+[
+  {
+    "word": "encounter",
+    "normalizedWord": "encounter",
+    "dictionaryName": "CET4",
+    "difficulty": 4,
+    "meaning": "遇到",
+    "source": "built-in"
+  },
+  {
+    "word": "current",
+    "normalizedWord": "current",
+    "dictionaryName": "CET4",
+    "difficulty": 4,
+    "meaning": "当前的",
+    "source": "built-in"
+  },
+  {
+    "word": "improve",
+    "normalizedWord": "improve",
+    "dictionaryName": "CET4",
+    "difficulty": 4,
+    "meaning": "改善",
+    "source": "built-in"
+  },
+  {
+    "word": "support",
+    "normalizedWord": "support",
+    "dictionaryName": "CET4",
+    "difficulty": 4,
+    "meaning": "支持",
+    "source": "built-in"
+  },
+  {
+    "word": "manage",
+    "normalizedWord": "manage",
+    "dictionaryName": "CET4",
+    "difficulty": 4,
+    "meaning": "管理；设法完成",
+    "source": "built-in"
+  }
+]
