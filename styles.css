@@ -6,9 +6,24 @@
   padding: 12px;
 }
 
-.lexinote-sidebar h3 {
-  margin: 0 0 12px;
+.lexinote-sidebar-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.lexinote-sidebar h3,
+.lexinote-library h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
   font-size: var(--font-ui-medium);
+}
+
+.lexinote-sidebar-library-button {
+  flex: 0 0 auto;
 }
 
 .lexinote-word-list {
@@ -81,4 +96,47 @@
 .lexinote-hover-action {
   margin-top: 8px;
   width: 100%;
+}
+
+.lexinote-library {
+  padding: 12px;
+}
+
+.lexinote-library-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lexinote-library-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lexinote-library-sort {
+  flex: 0 0 auto;
+}
+
+.lexinote-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lexinote-library-item {
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 10px;
+}
+
+.lexinote-library-item-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.lexinote-library-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
 }

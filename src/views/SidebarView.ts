@@ -37,9 +37,22 @@ export class SidebarView extends ItemView {
     container.replaceChildren();
     container.classList.add("lexinote-sidebar");
 
+    const toolbar = document.createElement("div");
+    toolbar.classList.add("lexinote-sidebar-toolbar");
+
     const heading = document.createElement("h3");
     heading.textContent = "Current Difficult Words";
-    container.appendChild(heading);
+
+    const libraryButton = document.createElement("button");
+    libraryButton.classList.add("lexinote-sidebar-library-button");
+    libraryButton.type = "button";
+    libraryButton.textContent = "My Vocabulary";
+    libraryButton.addEventListener("click", () => {
+      void this.plugin.activateLibraryView();
+    });
+
+    toolbar.append(heading, libraryButton);
+    container.appendChild(toolbar);
 
     if (!this.currentResult) {
       this.appendEmptyState(container, "No active Markdown document.");

@@ -28,3 +28,5 @@ export const BUILT_IN_DICTIONARIES = [
 export const NO_LOCAL_MEANING_TEXT = "暂无本地释义";
 
 export const SIDEBAR_VIEW_TYPE = "lexinote-current-document";
+
+export const LIBRARY_VIEW_TYPE = "lexinote-vocabulary-library";

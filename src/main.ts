@@ -1,13 +1,14 @@
 import { Notice, Plugin } from "obsidian";
 import type { Editor, MarkdownFileInfo } from "obsidian";
 import { Analyzer } from "./analysis/Analyzer";
-import { DEFAULT_SETTINGS, SIDEBAR_VIEW_TYPE } from "./constants";
+import { DEFAULT_SETTINGS, LIBRARY_VIEW_TYPE, SIDEBAR_VIEW_TYPE } from "./constants";
 import { DictionaryService } from "./dictionary/DictionaryService";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
 import { HoverProvider } from "./editor/HoverProvider";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
 import { SidebarView } from "./views/SidebarView";
+import { VocabularyLibraryView } from "./views/VocabularyLibraryView";
 import type {
   CustomDictionarySnapshot,
   DictionaryEntry,
@@ -72,6 +73,14 @@ export default class LexiNotePlugin extends Plugin {
       name: "Open current document word list",
       callback: () => {
         void this.activateSidebarView();
+      }
+    });
+
+    this.addCommand({
+      id: "open-vocabulary-library",
+      name: "Open Vocabulary Library",
+      callback: () => {
+        void this.activateLibraryView();
       }
     });
 
@@ -164,6 +173,10 @@ export default class LexiNotePlugin extends Plugin {
 
   registerViews(): void {
     this.registerView(SIDEBAR_VIEW_TYPE, (leaf) => new SidebarView(leaf, this));
+    this.registerView(
+      LIBRARY_VIEW_TYPE,
+      (leaf) => new VocabularyLibraryView(leaf, this)
+    );
   }
 
   registerEditorIntegration(): void {
@@ -200,6 +213,30 @@ export default class LexiNotePlugin extends Plugin {
     }
 
     await this.reanalyzeActiveDocument("active-file-change");
+  }
+
+  async activateLibraryView(): Promise<void> {
+    const existingLeaves = this.app.workspace.getLeavesOfType(LIBRARY_VIEW_TYPE);
+
+    if (existingLeaves.length === 0) {
+      const leaf = this.app.workspace.getRightLeaf(false);
+
+      if (!leaf) {
+        new Notice("Unable to open LexiNote Vocabulary Library.");
+        return;
+      }
+
+      await leaf.setViewState({
+        type: LIBRARY_VIEW_TYPE,
+        active: true
+      });
+    }
+
+    const libraryLeaf = this.app.workspace.getLeavesOfType(LIBRARY_VIEW_TYPE)[0];
+
+    if (libraryLeaf) {
+      this.app.workspace.revealLeaf(libraryLeaf);
+    }
   }
 
   private hydratePluginData(

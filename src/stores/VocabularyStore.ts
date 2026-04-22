@@ -8,8 +8,11 @@ export type VocabularySortMode =
 
 type SaveCallback = () => void | Promise<void>;
 type ChangeCallback = (favorites: Record<string, FavoriteWord>) => void;
+type VocabularyListener = (favorites: Record<string, FavoriteWord>) => void;
 
 export class VocabularyStore {
+  private listeners = new Set<VocabularyListener>();
+
   constructor(
     private readonly favorites: Record<string, FavoriteWord>,
     private readonly saveCallback?: SaveCallback,
@@ -23,6 +26,15 @@ export class VocabularyStore {
 
   get(normalizedWord: string): FavoriteWord | undefined {
     return this.favorites[this.normalizeKey(normalizedWord)];
+  }
+
+  subscribe(listener: VocabularyListener): () => void {
+    this.listeners.add(listener);
+    listener(this.favorites);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   add(entry: DictionaryEntry, displayWord?: string): FavoriteWord {
@@ -117,6 +129,9 @@ export class VocabularyStore {
 
   private notifyChanged(): void {
     this.changeCallback?.(this.favorites);
+    for (const listener of this.listeners) {
+      listener(this.favorites);
+    }
     void this.saveCallback?.();
   }
 }
