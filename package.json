@@ -1,6 +1,6 @@
 {
   "name": "obsidian-lexinote",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Learn vocabulary while writing in Obsidian.",
   "main": "main.js",
   "scripts": {
