@@ -20,8 +20,6 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("General").setHeading();
-
     new Setting(containerEl)
       .setName("User difficulty")
       .setDesc("Words with a higher difficulty are highlighted.")
@@ -97,7 +95,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Dictionary file")
-      .setDesc("Choose a .json, .csv, or .txt dictionary file.")
+      .setDesc("Choose a JSON, CSV, or TXT dictionary file.")
       .then((setting) => {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -175,7 +173,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const format = this.getImportFormat(this.importFile.name);
 
     if (!format) {
-      new Notice("Dictionary file must be .json, .csv, or .txt.");
+      new Notice("Dictionary file must be JSON, CSV, or TXT.");
       return;
     }
 
