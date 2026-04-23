@@ -20,7 +20,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("LexiNote settings").setHeading();
+    new Setting(containerEl).setName("General").setHeading();
 
     new Setting(containerEl)
       .setName("User difficulty")
@@ -190,7 +190,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     if (result.snapshot) {
       this.setImportStatus(
-        `Imported ${result.successCount} words. Failed: ${result.failedCount}. Skipped: ${result.skippedCount}.`
+        `Imported ${result.successCount} words; failed: ${result.failedCount}; skipped: ${result.skippedCount}.`
       );
     } else {
       this.setImportStatus(

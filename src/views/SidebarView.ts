@@ -19,7 +19,7 @@ export class SidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "LexiNote current document";
+    return "Current document word list";
   }
 
   getIcon(): string {

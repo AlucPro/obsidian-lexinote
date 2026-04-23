@@ -174,7 +174,7 @@ export class HoverProvider {
     if (fallbackButton) {
       card.append(fallbackButton, fallbackStatus);
     } else if (!match.difficultWord.meaning && this.plugin.settings.fallbackApiEnabled) {
-      fallbackStatus.textContent = "fallback endpoint is not configured";
+      fallbackStatus.textContent = "Fallback endpoint is not configured.";
       card.append(fallbackStatus);
     }
 

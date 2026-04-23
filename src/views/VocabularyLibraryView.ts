@@ -23,7 +23,7 @@ export class VocabularyLibraryView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "LexiNote vocabulary library";
+    return "Vocabulary library";
   }
 
   getIcon(): string {

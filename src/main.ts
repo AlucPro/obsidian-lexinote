@@ -68,7 +68,7 @@ export default class LexiNotePlugin extends Plugin {
     this.highlighter = new EditorHighlighter(this.app);
     this.hoverProvider = new HoverProvider(this);
 
-    this.addRibbonIcon(LEXINOTE_ICON_ID, "LexiNote", () => {
+    this.addRibbonIcon(LEXINOTE_ICON_ID, "Open current document word list", () => {
       void this.activateSidebarView();
     });
 
@@ -250,7 +250,7 @@ export default class LexiNotePlugin extends Plugin {
       const leaf = this.app.workspace.getRightLeaf(false);
 
       if (!leaf) {
-        new Notice("Unable to open LexiNote sidebar.");
+        new Notice("Unable to open sidebar.");
         return;
       }
 
@@ -263,7 +263,7 @@ export default class LexiNotePlugin extends Plugin {
     const sidebarLeaf = this.app.workspace.getLeavesOfType(SIDEBAR_VIEW_TYPE)[0];
 
     if (sidebarLeaf) {
-      this.app.workspace.revealLeaf(sidebarLeaf);
+      await this.app.workspace.revealLeaf(sidebarLeaf);
     }
 
     await this.reanalyzeActiveDocument("active-file-change");
@@ -276,7 +276,7 @@ export default class LexiNotePlugin extends Plugin {
       const leaf = this.app.workspace.getRightLeaf(false);
 
       if (!leaf) {
-        new Notice("Unable to open LexiNote Vocabulary Library.");
+        new Notice("Unable to open vocabulary library.");
         return;
       }
 
@@ -289,7 +289,7 @@ export default class LexiNotePlugin extends Plugin {
     const libraryLeaf = this.app.workspace.getLeavesOfType(LIBRARY_VIEW_TYPE)[0];
 
     if (libraryLeaf) {
-      this.app.workspace.revealLeaf(libraryLeaf);
+      await this.app.workspace.revealLeaf(libraryLeaf);
     }
   }
 

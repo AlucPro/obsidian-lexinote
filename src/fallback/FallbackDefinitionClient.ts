@@ -13,13 +13,13 @@ export class FallbackDefinitionClient {
   ): Promise<FallbackLookupResult> {
     if (!settings.fallbackApiEnabled) {
       return {
-        error: "fallback disabled"
+        error: "Fallback disabled."
       };
     }
 
     if (!settings.fallbackApiEndpoint?.trim()) {
       return {
-        error: "fallback endpoint is not configured"
+        error: "Fallback endpoint is not configured."
       };
     }
 
@@ -37,14 +37,14 @@ export class FallbackDefinitionClient {
 
       if (response.status < 200 || response.status >= 300) {
         return {
-          error: `fallback request failed: ${response.status}`
+          error: `Fallback request failed: ${response.status}.`
         };
       }
 
       return this.parseResponse(response.text);
     } catch (error) {
       return {
-        error: error instanceof Error ? error.message : "fallback request failed"
+        error: error instanceof Error ? error.message : "Fallback request failed."
       };
     }
   }
@@ -81,7 +81,7 @@ export class FallbackDefinitionClient {
       }
 
       return {
-        error: "fallback response does not include a meaning"
+        error: "Fallback response does not include a meaning."
       };
     } catch {
       if (text.trim()) {
@@ -91,7 +91,7 @@ export class FallbackDefinitionClient {
       }
 
       return {
-        error: "fallback response is empty"
+        error: "Fallback response is empty."
       };
     }
   }

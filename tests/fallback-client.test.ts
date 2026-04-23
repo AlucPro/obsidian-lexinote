@@ -24,7 +24,7 @@ describe("FallbackDefinitionClient", () => {
       fallbackApiEnabled: false
     });
 
-    expect(result.error).toBe("fallback disabled");
+    expect(result.error).toBe("Fallback disabled.");
     expect(requestUrl).not.toHaveBeenCalled();
   });
 
@@ -34,7 +34,7 @@ describe("FallbackDefinitionClient", () => {
       fallbackApiEndpoint: ""
     });
 
-    expect(result.error).toBe("fallback endpoint is not configured");
+    expect(result.error).toBe("Fallback endpoint is not configured.");
     expect(requestUrl).not.toHaveBeenCalled();
   });
 
