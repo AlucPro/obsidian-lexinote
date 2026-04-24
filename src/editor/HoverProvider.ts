@@ -111,7 +111,7 @@ export class HoverProvider {
     this.hideCard(false);
 
     const favorite = this.plugin.vocabularyStore.get(match.occurrence.normalizedWord);
-    const card = document.createElement("div");
+    const card = activeDocument.createElement("div");
     card.classList.add("lexinote-hover-card");
     card.addEventListener("mouseleave", (event) => {
       if (!this.isHighlightTarget(event.relatedTarget)) {
@@ -123,18 +123,18 @@ export class HoverProvider {
       mouseEvent.stopPropagation();
     });
 
-    const title = document.createElement("div");
+    const title = activeDocument.createElement("div");
     title.classList.add("lexinote-hover-title");
     title.textContent = match.occurrence.word;
 
-    const meaning = document.createElement("div");
+    const meaning = activeDocument.createElement("div");
     meaning.classList.add("lexinote-hover-meaning");
     meaning.textContent = formatMeaningText(
       match.difficultWord.meaning,
       NO_LOCAL_MEANING_TEXT
     );
 
-    const fallbackStatus = document.createElement("div");
+    const fallbackStatus = activeDocument.createElement("div");
     fallbackStatus.classList.add("lexinote-hover-fallback-status");
 
     const fallbackButton = this.createFallbackButton(
@@ -144,11 +144,11 @@ export class HoverProvider {
       fallbackStatus
     );
 
-    const meta = document.createElement("div");
+    const meta = activeDocument.createElement("div");
     meta.classList.add("lexinote-hover-meta");
     meta.textContent = `${match.difficultWord.dictionaryName} · ${match.difficultWord.difficulty}`;
 
-    const button = document.createElement("button");
+    const button = activeDocument.createElement("button");
     button.classList.add("lexinote-hover-action");
     button.type = "button";
     button.textContent = favorite ? "取消收藏" : "收藏";
@@ -179,7 +179,7 @@ export class HoverProvider {
     }
 
     card.append(meta, button);
-    document.body.appendChild(card);
+    activeDocument.body.appendChild(card);
     this.cardEl = card;
     this.positionCard(anchorEl);
   }
@@ -198,7 +198,7 @@ export class HoverProvider {
       return undefined;
     }
 
-    const button = document.createElement("button");
+    const button = activeDocument.createElement("button");
     button.classList.add("lexinote-hover-fallback-action");
     button.type = "button";
     button.textContent = "查询释义";
@@ -243,11 +243,11 @@ export class HoverProvider {
     const viewportMargin = 8;
     const anchorRect = anchorEl.getBoundingClientRect();
     const rect = this.cardEl.getBoundingClientRect();
-    const maxLeft = window.innerWidth - rect.width - viewportMargin;
+    const maxLeft = activeWindow.innerWidth - rect.width - viewportMargin;
     const belowTop = anchorRect.bottom;
     const aboveTop = anchorRect.top - rect.height;
     const top =
-      belowTop + rect.height <= window.innerHeight
+      belowTop + rect.height <= activeWindow.innerHeight
         ? belowTop
         : Math.max(viewportMargin, aboveTop);
     const left = Math.max(

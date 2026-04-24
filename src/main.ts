@@ -117,7 +117,7 @@ export default class LexiNotePlugin extends Plugin {
 
   onunload(): void {
     if (this.reanalyzeTimer) {
-      window.clearTimeout(this.reanalyzeTimer);
+      activeWindow.clearTimeout(this.reanalyzeTimer);
     }
   }
 
@@ -263,7 +263,7 @@ export default class LexiNotePlugin extends Plugin {
     const sidebarLeaf = this.app.workspace.getLeavesOfType(SIDEBAR_VIEW_TYPE)[0];
 
     if (sidebarLeaf) {
-      await this.app.workspace.revealLeaf(sidebarLeaf);
+      this.app.workspace.setActiveLeaf(sidebarLeaf, { focus: true });
     }
 
     await this.reanalyzeActiveDocument("active-file-change");
@@ -289,7 +289,7 @@ export default class LexiNotePlugin extends Plugin {
     const libraryLeaf = this.app.workspace.getLeavesOfType(LIBRARY_VIEW_TYPE)[0];
 
     if (libraryLeaf) {
-      await this.app.workspace.revealLeaf(libraryLeaf);
+      this.app.workspace.setActiveLeaf(libraryLeaf, { focus: true });
     }
   }
 
@@ -394,10 +394,10 @@ export default class LexiNotePlugin extends Plugin {
 
   private queueReanalyzeActiveDocument(reason: RefreshReason): void {
     if (this.reanalyzeTimer) {
-      window.clearTimeout(this.reanalyzeTimer);
+      activeWindow.clearTimeout(this.reanalyzeTimer);
     }
 
-    this.reanalyzeTimer = window.setTimeout(() => {
+    this.reanalyzeTimer = activeWindow.setTimeout(() => {
       void this.reanalyzeActiveDocument(reason);
     }, 300);
   }
@@ -420,10 +420,10 @@ export default class LexiNotePlugin extends Plugin {
     };
 
     if (this.reanalyzeTimer) {
-      window.clearTimeout(this.reanalyzeTimer);
+      activeWindow.clearTimeout(this.reanalyzeTimer);
     }
 
-    this.reanalyzeTimer = window.setTimeout(() => {
+    this.reanalyzeTimer = activeWindow.setTimeout(() => {
       const pendingAnalysis = this.pendingEditorAnalysis;
       this.pendingEditorAnalysis = undefined;
 

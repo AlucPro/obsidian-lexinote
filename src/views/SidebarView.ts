@@ -47,22 +47,22 @@ export class SidebarView extends ItemView {
     container.replaceChildren();
     container.classList.add("lexinote-sidebar");
 
-    const toolbar = document.createElement("div");
+    const toolbar = activeDocument.createElement("div");
     toolbar.classList.add("lexinote-sidebar-toolbar");
 
     const heading = new Setting(toolbar).setName("").setHeading();
     heading.settingEl.classList.add("lexinote-panel-heading");
 
-    const headingIcon = document.createElement("span");
+    const headingIcon = activeDocument.createElement("span");
     headingIcon.classList.add("lexinote-panel-heading-icon");
     setIcon(headingIcon, LEXINOTE_ICON_ID);
 
-    const headingText = document.createElement("span");
+    const headingText = activeDocument.createElement("span");
     headingText.textContent = "Current difficult words";
 
     heading.nameEl.replaceChildren(headingIcon, headingText);
 
-    const libraryButton = document.createElement("button");
+    const libraryButton = activeDocument.createElement("button");
     libraryButton.classList.add("lexinote-sidebar-library-button");
     libraryButton.type = "button";
     libraryButton.textContent = "My vocabulary";
@@ -83,22 +83,22 @@ export class SidebarView extends ItemView {
       return;
     }
 
-    const list = document.createElement("div");
+    const list = activeDocument.createElement("div");
     list.addClass("lexinote-word-list");
 
     for (const word of this.currentResult.difficultWords) {
-      const item = document.createElement("div");
+      const item = activeDocument.createElement("div");
       item.classList.add("lexinote-word-item");
 
-      const header = document.createElement("div");
+      const header = activeDocument.createElement("div");
       header.classList.add("lexinote-word-header");
 
-      const title = document.createElement("div");
+      const title = activeDocument.createElement("div");
       title.classList.add("lexinote-word-title");
       title.textContent = word.word;
 
       const favorite = this.plugin.vocabularyStore.get(word.normalizedWord);
-      const button = document.createElement("button");
+      const button = activeDocument.createElement("button");
       button.classList.add("lexinote-word-action");
       button.type = "button";
       button.textContent = favorite ? "取消收藏" : "收藏";
@@ -110,11 +110,11 @@ export class SidebarView extends ItemView {
         this.toggleFavorite(word);
       });
 
-      const meaning = document.createElement("div");
+      const meaning = activeDocument.createElement("div");
       meaning.classList.add("lexinote-word-meaning");
       meaning.textContent = formatMeaningText(word.meaning, NO_LOCAL_MEANING_TEXT);
 
-      const meta = document.createElement("div");
+      const meta = activeDocument.createElement("div");
       meta.classList.add("lexinote-word-meta");
       meta.textContent = `${word.dictionaryName} · ${word.difficulty}${
         favorite ? " · 已收藏" : ""
@@ -144,7 +144,7 @@ export class SidebarView extends ItemView {
   }
 
   private appendEmptyState(container: Element, message: string): void {
-    const empty = document.createElement("p");
+    const empty = activeDocument.createElement("p");
     empty.classList.add("lexinote-empty-state");
     empty.textContent = message;
     container.appendChild(empty);

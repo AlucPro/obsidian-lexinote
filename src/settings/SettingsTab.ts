@@ -95,9 +95,9 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Dictionary file")
-      .setDesc("Choose a JSON, CSV, or TXT dictionary file.")
+      .setDesc("Choose a JSON, CSV, or txt dictionary file.")
       .then((setting) => {
-        const fileInput = document.createElement("input");
+        const fileInput = activeDocument.createElement("input");
         fileInput.type = "file";
         fileInput.accept = ".json,.csv,.txt";
         fileInput.addEventListener("change", () => {
@@ -173,7 +173,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const format = this.getImportFormat(this.importFile.name);
 
     if (!format) {
-      new Notice("Dictionary file must be JSON, CSV, or TXT.");
+      new Notice("Dictionary file must be JSON, CSV, or txt.");
       return;
     }
 

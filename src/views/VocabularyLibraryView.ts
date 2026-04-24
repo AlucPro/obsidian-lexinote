@@ -44,7 +44,7 @@ export class VocabularyLibraryView extends ItemView {
     this.unsubscribe = undefined;
 
     if (this.searchTimer) {
-      window.clearTimeout(this.searchTimer);
+      activeWindow.clearTimeout(this.searchTimer);
     }
 
     return Promise.resolve();
@@ -58,17 +58,17 @@ export class VocabularyLibraryView extends ItemView {
     const heading = new Setting(container).setName("").setHeading();
     heading.settingEl.classList.add("lexinote-panel-heading");
 
-    const headingIcon = document.createElement("span");
+    const headingIcon = activeDocument.createElement("span");
     headingIcon.classList.add("lexinote-panel-heading-icon");
     setIcon(headingIcon, LEXINOTE_ICON_ID);
 
-    const headingText = document.createElement("span");
+    const headingText = activeDocument.createElement("span");
     headingText.textContent = "My vocabulary";
 
     heading.nameEl.replaceChildren(headingIcon, headingText);
 
     const controls = this.createControls();
-    this.listContainerEl = document.createElement("div");
+    this.listContainerEl = activeDocument.createElement("div");
     this.listContainerEl.classList.add("lexinote-library-results");
 
     container.append(controls, this.listContainerEl);
@@ -84,7 +84,7 @@ export class VocabularyLibraryView extends ItemView {
     const words = this.plugin.vocabularyStore.search(this.searchQuery, this.sortMode);
 
     if (words.length === 0) {
-      const empty = document.createElement("p");
+      const empty = activeDocument.createElement("p");
       empty.classList.add("lexinote-empty-state");
       empty.textContent = this.searchQuery
         ? "No matching favorite words."
@@ -93,7 +93,7 @@ export class VocabularyLibraryView extends ItemView {
       return;
     }
 
-    const list = document.createElement("div");
+    const list = activeDocument.createElement("div");
     list.classList.add("lexinote-library-list");
 
     for (const word of words) {
@@ -104,26 +104,26 @@ export class VocabularyLibraryView extends ItemView {
   }
 
   private createControls(): HTMLElement {
-    const controls = document.createElement("div");
+    const controls = activeDocument.createElement("div");
     controls.classList.add("lexinote-library-controls");
 
-    const searchInput = document.createElement("input");
+    const searchInput = activeDocument.createElement("input");
     searchInput.classList.add("lexinote-library-search");
     searchInput.type = "search";
     searchInput.placeholder = "Search word or meaning";
     searchInput.value = this.searchQuery;
     searchInput.addEventListener("input", () => {
       if (this.searchTimer) {
-        window.clearTimeout(this.searchTimer);
+        activeWindow.clearTimeout(this.searchTimer);
       }
 
-      this.searchTimer = window.setTimeout(() => {
+      this.searchTimer = activeWindow.setTimeout(() => {
         this.searchQuery = searchInput.value;
         this.renderList();
       }, 200);
     });
 
-    const sortSelect = document.createElement("select");
+    const sortSelect = activeDocument.createElement("select");
     sortSelect.classList.add("lexinote-library-sort");
     this.appendSortOption(sortSelect, "created-desc", "Newest first");
     this.appendSortOption(sortSelect, "created-asc", "Oldest first");
@@ -144,27 +144,27 @@ export class VocabularyLibraryView extends ItemView {
     value: VocabularySortMode,
     label: string
   ): void {
-    const option = document.createElement("option");
+    const option = activeDocument.createElement("option");
     option.value = value;
     option.textContent = label;
     select.appendChild(option);
   }
 
   private createWordItem(word: FavoriteWord): HTMLElement {
-    const item = document.createElement("div");
+    const item = activeDocument.createElement("div");
     item.classList.add("lexinote-library-item");
 
-    const header = document.createElement("div");
+    const header = activeDocument.createElement("div");
     header.classList.add("lexinote-library-item-header");
 
-    const title = document.createElement("div");
+    const title = activeDocument.createElement("div");
     title.classList.add("lexinote-word-title");
     title.textContent = word.word;
 
-    const actions = document.createElement("div");
+    const actions = activeDocument.createElement("div");
     actions.classList.add("lexinote-library-actions");
 
-    const knownButton = document.createElement("button");
+    const knownButton = activeDocument.createElement("button");
     knownButton.type = "button";
     knownButton.textContent = word.known ? "取消熟悉" : "标熟";
     knownButton.addEventListener("click", () => {
@@ -172,7 +172,7 @@ export class VocabularyLibraryView extends ItemView {
       void this.plugin.reanalyzeActiveDocument("favorites-change");
     });
 
-    const deleteButton = document.createElement("button");
+    const deleteButton = activeDocument.createElement("button");
     deleteButton.type = "button";
     deleteButton.textContent = "删除";
     deleteButton.addEventListener("click", () => {
@@ -183,11 +183,11 @@ export class VocabularyLibraryView extends ItemView {
     actions.append(knownButton, deleteButton);
     header.append(title, actions);
 
-    const meaning = document.createElement("div");
+    const meaning = activeDocument.createElement("div");
     meaning.classList.add("lexinote-word-meaning");
     meaning.textContent = formatMeaningText(word.meaning, NO_LOCAL_MEANING_TEXT);
 
-    const meta = document.createElement("div");
+    const meta = activeDocument.createElement("div");
     meta.classList.add("lexinote-word-meta");
     meta.textContent = `${this.formatDictionaryMeta(word)} · ${this.formatDate(
       word.createdAt
