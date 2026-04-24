@@ -7,6 +7,8 @@
     "dev": "node esbuild.config.mjs",
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
     "generate:dictionaries": "node scripts/generate-built-in-dictionaries.mjs",
+    "lint": "eslint \"src/**/*.ts\"",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "test": "vitest run"
   },
@@ -30,11 +32,14 @@
     "url": "https://github.com/AlucPro/obsidian-lexinote/issues"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
     "@codemirror/state": "6.5.0",
     "@codemirror/view": "6.38.6",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/parser": "^8.33.1",
     "builtin-modules": "^3.3.0",
     "esbuild": "^0.20.2",
+    "eslint": "^9.39.4",
+    "eslint-plugin-obsidianmd": "^0.2.4",
     "obsidian": "^1.5.12",
     "tslib": "^2.6.2",
     "typescript": "^5.4.2",
