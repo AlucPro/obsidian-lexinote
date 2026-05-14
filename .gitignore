@@ -147,4 +147,7 @@ main.js.map
 .DS_Store
 
 # docs
-docs
+docs/*
+!docs/
+!docs/user-guide/
+!docs/user-guide/*.md

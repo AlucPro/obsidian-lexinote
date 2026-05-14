@@ -1,6 +1,6 @@
 # LexiNote
 
-[English](../README.md) | [中文](README_ZH.md)
+[English](../README.md) | [用户使用手册](https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LexiNote-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E) | [User Guide](https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LexiNote-User-Guide)
 
 在你已经写下的笔记里学习英语词汇。
 
