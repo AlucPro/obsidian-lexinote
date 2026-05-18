@@ -234,6 +234,10 @@ tests/test-dictionary/v2-sensory.csv
 tests/test-dictionary/v2-plain.txt
 ```
 
+You can also view and use the test dictionary files directly on GitHub:
+
+[AlucPro/obsidian-lexinote](https://github.com/AlucPro/obsidian-lexinote/tree/main/tests/test-dictionary)
+
 TXT imports do not include local meanings, so they are useful for validating the no-local-meaning display.
 
 ## Release

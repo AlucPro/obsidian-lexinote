@@ -234,6 +234,10 @@ tests/test-dictionary/v2-sensory.csv
 tests/test-dictionary/v2-plain.txt
 ```
 
+如果你想测试或使用测试词典查看效果，也可以直接访问 GitHub 上的测试词典目录：
+
+[AlucPro/obsidian-lexinote](https://github.com/AlucPro/obsidian-lexinote/tree/main/tests/test-dictionary)
+
 TXT 导入不包含本地释义，因此适合用于验证无本地释义的显示效果。
 
 ## Release

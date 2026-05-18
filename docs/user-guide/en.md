@@ -186,6 +186,10 @@ scrutiny
 
 TXT imports do not include meanings, so hover cards and word lists show `No local meaning.` in English UI or `暂无本地释义` in Chinese UI.
 
+If you want to test LexiNote with sample content and dictionaries, you can view and use the test dictionary files here:
+
+[AlucPro/obsidian-lexinote](https://github.com/AlucPro/obsidian-lexinote/tree/main/tests/test-dictionary)
+
 ## Duplicate Words And Favorites
 
 When duplicate words appear in different enabled dictionaries, LexiNote does not merge them away. The current document word list and hover card can show multiple dictionary entries for the same word.

@@ -186,6 +186,10 @@ scrutiny
 
 TXT 不包含释义，因此悬停卡片和词表中会显示 `暂无本地释义`。
 
+如果你想测试或使用测试词典查看效果，可以直接访问 GitHub 上的测试词典目录：
+
+[AlucPro/obsidian-lexinote](https://github.com/AlucPro/obsidian-lexinote/tree/main/tests/test-dictionary)
+
 ## 重复词与收藏词
 
 如果同一个单词出现在多本已启用词典中，LexiNote 不会把它们简单合并掉。当前文档词表和 hover 卡片可以展示这个词对应的多个词典条目。
