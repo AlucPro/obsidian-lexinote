@@ -12,7 +12,8 @@ const baseSettings: LexiNoteSettings = {
   highlightColor: "#ffd166",
   highlightStyle: "background",
   underlineStyle: "solid",
-  dictionarySource: "built-in-only",
+  enabledDictionaryIds: ["built-in:Built-in"],
+  dictionaryOrder: ["built-in:Built-in"],
   hideKnownWords: true,
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
@@ -37,11 +38,14 @@ function entry(
 
 function snapshot(entries: DictionaryEntry[]): CustomDictionarySnapshot {
   return {
+    id: "custom",
     entries,
     importedAt: 1,
     sourceFileName: "custom.json",
     dictionaryName: "Custom",
     difficulty: 9,
+    enabled: true,
+    order: 1,
     stats: {
       successCount: entries.length,
       failedCount: 0,
@@ -60,21 +64,56 @@ describe("DictionaryService", () => {
     expect(service.lookup("robust")?.meaning).toBe("强健的");
   });
 
-  it("lets custom entries override built-in entries in built-in + custom mode", () => {
+  it("keeps built-in and custom duplicate entries in configured order", () => {
     const service = new DictionaryService();
 
     service.loadBuiltIn([entry("robust", 7, "强健的")]);
-    service.setCustomSnapshot(snapshot([entry("robust", 9, "自定义释义", "custom")]));
+    service.setCustomSnapshots([
+      snapshot([entry("robust", 9, "自定义释义", "custom")])
+    ]);
     service.rebuildEffectiveDictionary({
       ...baseSettings,
-      dictionarySource: "built-in-custom"
+      enabledDictionaryIds: ["built-in:Built-in", "custom"],
+      dictionaryOrder: ["built-in:Built-in", "custom"]
     });
 
-    expect(service.lookup("robust")).toMatchObject({
-      meaning: "自定义释义",
-      source: "custom",
-      difficulty: 9
+    expect(service.lookupAll("robust").map((item) => item.meaning)).toEqual([
+      "强健的",
+      "自定义释义"
+    ]);
+    expect(service.lookup("robust")?.meaning).toBe("强健的");
+  });
+
+  it("returns duplicate words from every enabled dictionary in dictionary order", () => {
+    const service = new DictionaryService();
+
+    service.loadBuiltIn([entry("robust", 7, "内置释义")]);
+    service.setCustomSnapshots([
+      {
+        ...snapshot([entry("robust", 9, "学术释义", "custom")]),
+        id: "academic",
+        dictionaryName: "Academic",
+        order: 2
+      },
+      {
+        ...snapshot([entry("robust", 5, "写作释义", "custom")]),
+        id: "writing",
+        dictionaryName: "Writing",
+        order: 1
+      }
+    ]);
+    service.rebuildEffectiveDictionary({
+      ...baseSettings,
+      enabledDictionaryIds: ["built-in:Built-in", "writing", "academic"],
+      dictionaryOrder: ["writing", "built-in:Built-in", "academic"]
     });
+
+    expect(service.lookupAll("ROBUST").map((item) => item.dictionaryName)).toEqual([
+      "Writing",
+      "Built-in",
+      "Academic"
+    ]);
+    expect(service.lookup("robust")?.meaning).toBe("写作释义");
   });
 
   it("ignores custom entries in built-in only mode", () => {
@@ -90,14 +129,17 @@ describe("DictionaryService", () => {
     });
   });
 
-  it("uses only custom entries in custom only mode", () => {
+  it("uses only enabled custom dictionaries when built-in dictionaries are disabled", () => {
     const service = new DictionaryService();
 
     service.loadBuiltIn([entry("robust", 7, "强健的")]);
-    service.setCustomSnapshot(snapshot([entry("meticulous", 9, "细致的", "custom")]));
+    service.setCustomSnapshots([
+      snapshot([entry("meticulous", 9, "细致的", "custom")])
+    ]);
     service.rebuildEffectiveDictionary({
       ...baseSettings,
-      dictionarySource: "custom-only"
+      enabledDictionaryIds: ["custom"],
+      dictionaryOrder: ["custom"]
     });
 
     expect(service.lookup("robust")).toBeUndefined();

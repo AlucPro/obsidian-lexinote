@@ -15,6 +15,7 @@ export interface DictionaryEntry {
   word: string;
   normalizedWord: string;
   dictionaryName: string;
+  dictionaryId?: string;
   difficulty: DictionaryDifficulty;
   meaning?: string;
   source: DictionarySource;
@@ -51,11 +52,14 @@ export interface ImportResult {
 }
 
 export interface CustomDictionarySnapshot {
+  id: string;
   entries: DictionaryEntry[];
   importedAt: number;
   sourceFileName: string;
   dictionaryName: string;
   difficulty: DictionaryDifficulty;
+  enabled: boolean;
+  order: number;
   stats: ImportStats;
 }
 
@@ -64,7 +68,9 @@ export interface LexiNoteSettings {
   highlightColor: string;
   highlightStyle: HighlightStyle;
   underlineStyle: UnderlineStyle;
-  dictionarySource: DictionarySourceMode;
+  dictionarySource?: DictionarySourceMode;
+  enabledDictionaryIds: string[];
+  dictionaryOrder: string[];
   hideKnownWords: boolean;
   fallbackApiEnabled: boolean;
   fallbackApiEndpoint?: string;
@@ -74,6 +80,7 @@ export interface LexiNoteSettings {
 export interface LexiNotePluginData {
   settings: LexiNoteSettings;
   favorites: Record<string, FavoriteWord>;
+  customDictionarySnapshots?: CustomDictionarySnapshot[];
   customDictionarySnapshot?: CustomDictionarySnapshot;
   metrics?: LocalMetrics;
 }
@@ -102,6 +109,7 @@ export interface AnalyzedDifficultWord {
   meaning?: string;
   dictionaryName: string;
   difficulty: DictionaryDifficulty;
+  dictionaryEntries: DictionaryEntry[];
   firstRange: TextRange;
   occurrences: AnalyzedWordOccurrence[];
   favorite: boolean;

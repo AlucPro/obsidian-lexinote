@@ -1,6 +1,7 @@
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { NO_LOCAL_MEANING_TEXT } from "../constants";
+import { formatDictionaryEntriesMeta } from "../ui/dictionaryMeta";
 import { formatMeaningText } from "../ui/meaningText";
 import type {
   AnalyzedDifficultWord,
@@ -146,7 +147,9 @@ export class HoverProvider {
 
     const meta = activeDocument.createElement("div");
     meta.classList.add("lexinote-hover-meta");
-    meta.textContent = `${match.difficultWord.dictionaryName} · ${match.difficultWord.difficulty}`;
+    meta.textContent = formatDictionaryEntriesMeta(
+      match.difficultWord.dictionaryEntries
+    );
 
     const button = activeDocument.createElement("button");
     button.classList.add("lexinote-hover-action");

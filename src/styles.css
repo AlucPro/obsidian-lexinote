@@ -118,6 +118,7 @@
 
 .lexinote-word-meta {
   margin-top: 2px;
+  white-space: pre-line;
 }
 
 .lexinote-hover-card {
@@ -152,6 +153,7 @@
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
   margin-top: 6px;
+  white-space: pre-line;
 }
 
 .lexinote-hover-action {
@@ -216,4 +218,42 @@
 .lexinote-import-status {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
+}
+
+.lexinote-dictionary-table-wrapper {
+  overflow-x: auto;
+  margin: 8px 0 16px;
+}
+
+.lexinote-dictionary-table {
+  border-collapse: collapse;
+  font-size: var(--font-ui-small);
+  width: 100%;
+}
+
+.lexinote-dictionary-table th,
+.lexinote-dictionary-table td {
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.lexinote-dictionary-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.lexinote-dictionary-table input[type="text"],
+.lexinote-dictionary-table input[type="number"] {
+  min-width: 72px;
+  width: 100%;
+}
+
+.lexinote-dictionary-table td:nth-child(6) {
+  white-space: nowrap;
+}
+
+.lexinote-dictionary-table td:nth-child(6) button {
+  margin-right: 4px;
 }

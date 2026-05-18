@@ -1,7 +1,12 @@
 import { Notice, Plugin } from "obsidian";
 import type { Editor, MarkdownFileInfo } from "obsidian";
 import { Analyzer } from "./analysis/Analyzer";
-import { DEFAULT_SETTINGS, LIBRARY_VIEW_TYPE, SIDEBAR_VIEW_TYPE } from "./constants";
+import {
+  BUILT_IN_DICTIONARY_IDS,
+  DEFAULT_SETTINGS,
+  LIBRARY_VIEW_TYPE,
+  SIDEBAR_VIEW_TYPE
+} from "./constants";
 import { DictionaryService } from "./dictionary/DictionaryService";
 import { DictionaryImporter } from "./dictionary/DictionaryImporter";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
@@ -29,7 +34,7 @@ import type { ImportOptions } from "./dictionary/DictionaryImporter";
 export default class LexiNotePlugin extends Plugin {
   settings: LexiNoteSettings = { ...DEFAULT_SETTINGS };
   favorites: Record<string, FavoriteWord> = {};
-  customDictionarySnapshot?: CustomDictionarySnapshot;
+  customDictionarySnapshots: CustomDictionarySnapshot[] = [];
   dictionaryService: DictionaryService = new DictionaryService();
   dictionaryImporter: DictionaryImporter = new DictionaryImporter();
   vocabularyStore: VocabularyStore = new VocabularyStore(this.favorites);
@@ -52,7 +57,7 @@ export default class LexiNotePlugin extends Plugin {
     this.dictionaryService = new DictionaryService();
     this.dictionaryImporter = new DictionaryImporter();
     this.dictionaryService.loadBuiltIn(this.loadBuiltInDictionaryFixtures());
-    this.dictionaryService.setCustomSnapshot(this.customDictionarySnapshot);
+    this.dictionaryService.setCustomSnapshots(this.customDictionarySnapshots);
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
 
     this.analysisStore = new AnalysisStore();
@@ -127,21 +132,21 @@ export default class LexiNotePlugin extends Plugin {
 
     this.settings = hydratedData.settings;
     this.favorites = hydratedData.favorites;
-    this.customDictionarySnapshot = hydratedData.customDictionarySnapshot;
+    this.customDictionarySnapshots = hydratedData.customDictionarySnapshots ?? [];
   }
 
   async savePluginData(): Promise<void> {
     const data: LexiNotePluginData = {
       settings: this.settings,
       favorites: this.favorites,
-      customDictionarySnapshot: this.customDictionarySnapshot
+      customDictionarySnapshots: this.customDictionarySnapshots
     };
 
     await this.saveData(data);
   }
 
   refreshDictionary(): void {
-    this.dictionaryService.setCustomSnapshot(this.customDictionarySnapshot);
+    this.dictionaryService.setCustomSnapshots(this.customDictionarySnapshots);
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
   }
 
@@ -150,6 +155,26 @@ export default class LexiNotePlugin extends Plugin {
       ...this.settings,
       ...settings
     };
+
+    this.settings.userDifficulty = this.normalizeUserDifficulty(
+      this.settings.userDifficulty
+    );
+
+    if (!Array.isArray(this.settings.enabledDictionaryIds)) {
+      this.settings.enabledDictionaryIds = [...BUILT_IN_DICTIONARY_IDS];
+    }
+
+    if (!Array.isArray(this.settings.dictionaryOrder)) {
+      this.settings.dictionaryOrder = [...this.settings.enabledDictionaryIds];
+    }
+
+    if (this.settings.enabledDictionaryIds.length === 0) {
+      this.settings.enabledDictionaryIds = [...BUILT_IN_DICTIONARY_IDS];
+    }
+
+    if (this.settings.dictionaryOrder.length === 0) {
+      this.settings.dictionaryOrder = [...this.settings.enabledDictionaryIds];
+    }
 
     if (!Number.isFinite(this.settings.userDifficulty) || this.settings.userDifficulty <= 0) {
       this.settings.userDifficulty = DEFAULT_SETTINGS.userDifficulty;
@@ -179,6 +204,23 @@ export default class LexiNotePlugin extends Plugin {
   }
 
   async importCustomDictionary(options: ImportOptions): Promise<ImportResult> {
+    const dictionaryName = options.dictionaryName.trim();
+
+    if (this.isDuplicateDictionaryName(dictionaryName)) {
+      const result: ImportResult = {
+        successCount: 0,
+        failedCount: 1,
+        skippedCount: 0,
+        errors: [
+          {
+            message: `Dictionary name already exists: ${dictionaryName}`
+          }
+        ]
+      };
+      new Notice("Dictionary name already exists.");
+      return result;
+    }
+
     const result = this.dictionaryImporter.import(options);
 
     if (!result.snapshot) {
@@ -186,11 +228,20 @@ export default class LexiNotePlugin extends Plugin {
       return result;
     }
 
-    this.customDictionarySnapshot = result.snapshot;
-    this.settings = {
-      ...this.settings,
-      dictionarySource: "built-in-custom"
+    const snapshot: CustomDictionarySnapshot = {
+      ...result.snapshot,
+      id: this.createCustomDictionaryId(result.snapshot),
+      enabled: true,
+      order: this.settings.dictionaryOrder.length
     };
+    this.customDictionarySnapshots = [...this.customDictionarySnapshots, snapshot];
+    this.settings.enabledDictionaryIds = [
+      ...new Set([...this.settings.enabledDictionaryIds, snapshot.id])
+    ];
+    this.settings.dictionaryOrder = [
+      ...this.settings.dictionaryOrder.filter((id) => id !== snapshot.id),
+      snapshot.id
+    ];
 
     await this.savePluginData();
     this.refreshDictionary();
@@ -198,6 +249,109 @@ export default class LexiNotePlugin extends Plugin {
     new Notice(`Imported ${result.successCount} words into LexiNote.`);
 
     return result;
+  }
+
+  async setDictionaryEnabled(
+    dictionaryId: string,
+    enabled: boolean
+  ): Promise<void> {
+    const enabledIds = new Set(this.settings.enabledDictionaryIds);
+
+    if (enabled) {
+      enabledIds.add(dictionaryId);
+    } else {
+      enabledIds.delete(dictionaryId);
+    }
+
+    this.settings.enabledDictionaryIds = Array.from(enabledIds);
+    await this.savePluginData();
+    this.refreshDictionary();
+    await this.reanalyzeActiveDocument("settings-change");
+  }
+
+  async moveDictionary(dictionaryId: string, direction: -1 | 1): Promise<void> {
+    const rows = this.getDictionaryRows();
+    const orderedIds = rows.map((row) => row.id);
+    const currentIndex = orderedIds.indexOf(dictionaryId);
+    const nextIndex = currentIndex + direction;
+
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= orderedIds.length) {
+      return;
+    }
+
+    [orderedIds[currentIndex], orderedIds[nextIndex]] = [
+      orderedIds[nextIndex],
+      orderedIds[currentIndex]
+    ];
+    this.settings.dictionaryOrder = orderedIds;
+    this.customDictionarySnapshots = this.customDictionarySnapshots.map((snapshot) => ({
+      ...snapshot,
+      order: orderedIds.indexOf(snapshot.id)
+    }));
+    await this.savePluginData();
+    this.refreshDictionary();
+    await this.reanalyzeActiveDocument("settings-change");
+  }
+
+  async updateCustomDictionary(
+    dictionaryId: string,
+    updates: { dictionaryName?: string; difficulty?: number }
+  ): Promise<boolean> {
+    const nextName = updates.dictionaryName?.trim();
+
+    if (
+      nextName &&
+      this.isDuplicateDictionaryName(nextName, dictionaryId)
+    ) {
+      new Notice("Dictionary name already exists.");
+      return false;
+    }
+
+    this.customDictionarySnapshots = this.customDictionarySnapshots.map((snapshot) => {
+      if (snapshot.id !== dictionaryId) {
+        return snapshot;
+      }
+
+      const dictionaryName = nextName || snapshot.dictionaryName;
+      const difficulty =
+        updates.difficulty === undefined
+          ? snapshot.difficulty
+          : this.normalizeDictionaryDifficulty(updates.difficulty);
+
+      return {
+        ...snapshot,
+        dictionaryName,
+        difficulty,
+        entries: snapshot.entries.map((entry) => ({
+          ...entry,
+          dictionaryName,
+          difficulty
+        }))
+      };
+    });
+    await this.savePluginData();
+    this.refreshDictionary();
+    await this.reanalyzeActiveDocument("dictionary-change");
+    return true;
+  }
+
+  async removeCustomDictionary(dictionaryId: string): Promise<void> {
+    this.customDictionarySnapshots = this.customDictionarySnapshots.filter(
+      (snapshot) => snapshot.id !== dictionaryId
+    );
+    this.settings.enabledDictionaryIds = this.settings.enabledDictionaryIds.filter(
+      (id) => id !== dictionaryId
+    );
+    this.settings.dictionaryOrder = this.settings.dictionaryOrder.filter(
+      (id) => id !== dictionaryId
+    );
+    await this.savePluginData();
+    this.refreshDictionary();
+    await this.reanalyzeActiveDocument("dictionary-change");
+  }
+
+  getDictionaryRows(): ReturnType<DictionaryService["getDictionaryRows"]> {
+    return this.dictionaryService.getDictionaryRows(this.settings);
   }
 
   async reanalyzeActiveDocument(reason: RefreshReason): Promise<void> {
@@ -314,14 +468,15 @@ export default class LexiNotePlugin extends Plugin {
       rawData?.settings && typeof rawData.settings === "object"
         ? rawData.settings
         : undefined;
+    const customDictionarySnapshots = this.hydrateCustomDictionarySnapshots(rawData);
     const hydratedSettings: LexiNoteSettings = {
       ...DEFAULT_SETTINGS,
       ...rawSettings
     };
 
-    if (!Number.isFinite(hydratedSettings.userDifficulty)) {
-      hydratedSettings.userDifficulty = DEFAULT_SETTINGS.userDifficulty;
-    }
+    hydratedSettings.userDifficulty = this.normalizeUserDifficulty(
+      hydratedSettings.userDifficulty
+    );
 
     if (!hydratedSettings.highlightColor) {
       hydratedSettings.highlightColor = DEFAULT_SETTINGS.highlightColor;
@@ -341,16 +496,19 @@ export default class LexiNotePlugin extends Plugin {
       hydratedSettings.underlineStyle = DEFAULT_SETTINGS.underlineStyle;
     }
 
-    hydratedSettings.dictionarySource = this.hydrateDictionarySource(
-      hydratedSettings.dictionarySource
+    hydratedSettings.enabledDictionaryIds = this.hydrateEnabledDictionaryIds(
+      hydratedSettings.enabledDictionaryIds,
+      customDictionarySnapshots
+    );
+    hydratedSettings.dictionaryOrder = this.hydrateDictionaryOrder(
+      hydratedSettings.dictionaryOrder,
+      customDictionarySnapshots
     );
 
     return {
       settings: hydratedSettings,
       favorites: this.hydrateFavorites(rawData?.favorites),
-      customDictionarySnapshot: this.hydrateCustomDictionarySnapshot(
-        rawData?.customDictionarySnapshot
-      ),
+      customDictionarySnapshots,
       metrics: rawData?.metrics
     };
   }
@@ -365,34 +523,149 @@ export default class LexiNotePlugin extends Plugin {
     return favorites;
   }
 
-  private hydrateDictionarySource(value: unknown): LexiNoteSettings["dictionarySource"] {
-    if (value === "built-in") {
-      return "built-in-only";
-    }
+  private hydrateCustomDictionarySnapshots(
+    rawData: Partial<LexiNotePluginData> | null
+  ): CustomDictionarySnapshot[] {
+    const rawSnapshots = Array.isArray(rawData?.customDictionarySnapshots)
+      ? rawData.customDictionarySnapshots
+      : rawData?.customDictionarySnapshot
+        ? [rawData.customDictionarySnapshot]
+        : [];
 
-    if (value === "custom") {
-      return "built-in-custom";
-    }
+    return rawSnapshots
+      .filter((snapshot) => snapshot && Array.isArray(snapshot.entries))
+      .map((snapshot, index) => {
+        const id =
+          typeof snapshot.id === "string" && snapshot.id.trim()
+            ? snapshot.id
+            : this.createCustomDictionaryId(snapshot, index);
+        const difficulty = this.normalizeDictionaryDifficulty(snapshot.difficulty);
+        const dictionaryName =
+          typeof snapshot.dictionaryName === "string" && snapshot.dictionaryName.trim()
+            ? snapshot.dictionaryName.trim()
+            : `Custom dictionary ${index + 1}`;
 
-    if (
-      value === "built-in-only" ||
-      value === "custom-only" ||
-      value === "built-in-custom"
-    ) {
-      return value;
-    }
-
-    return DEFAULT_SETTINGS.dictionarySource;
+        return {
+          ...snapshot,
+          id,
+          dictionaryName,
+          difficulty,
+          enabled: snapshot.enabled !== false,
+          order: Number.isFinite(snapshot.order) ? snapshot.order : index,
+          entries: snapshot.entries
+            .filter(this.isDictionaryEntryLike)
+            .map((entry) => ({
+              ...entry,
+              dictionaryId: id,
+              dictionaryName,
+              difficulty,
+              source: "custom" as const
+            }))
+        };
+      });
   }
 
-  private hydrateCustomDictionarySnapshot(
-    snapshot?: CustomDictionarySnapshot
-  ): CustomDictionarySnapshot | undefined {
-    if (!snapshot || !Array.isArray(snapshot.entries)) {
-      return undefined;
+  private hydrateEnabledDictionaryIds(
+    value: unknown,
+    snapshots: CustomDictionarySnapshot[]
+  ): string[] {
+    if (Array.isArray(value)) {
+      const ids = value.filter((item): item is string => typeof item === "string");
+      if (ids.length > 0) {
+        return ids;
+      }
     }
 
-    return snapshot;
+    return [
+      ...BUILT_IN_DICTIONARY_IDS,
+      ...snapshots.filter((snapshot) => snapshot.enabled).map((snapshot) => snapshot.id)
+    ];
+  }
+
+  private hydrateDictionaryOrder(
+    value: unknown,
+    snapshots: CustomDictionarySnapshot[]
+  ): string[] {
+    const allIds = [
+      ...BUILT_IN_DICTIONARY_IDS,
+      ...snapshots
+        .sort((left, right) => left.order - right.order)
+        .map((snapshot) => snapshot.id)
+    ];
+
+    if (Array.isArray(value)) {
+      const orderedIds = value.filter((item): item is string => typeof item === "string");
+      return [...orderedIds, ...allIds.filter((id) => !orderedIds.includes(id))];
+    }
+
+    return allIds;
+  }
+
+  private normalizeUserDifficulty(value: unknown): number {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return DEFAULT_SETTINGS.userDifficulty;
+    }
+
+    return Math.min(30, Math.max(1, Math.round(numericValue)));
+  }
+
+  private normalizeDictionaryDifficulty(value: unknown): number {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return DEFAULT_SETTINGS.userDifficulty + 1;
+    }
+
+    return Math.min(30, Math.max(1, Math.round(numericValue)));
+  }
+
+  private createCustomDictionaryId(
+    snapshot: Pick<CustomDictionarySnapshot, "dictionaryName" | "importedAt">,
+    fallbackIndex = this.customDictionarySnapshots.length
+  ): string {
+    const normalizedName = snapshot.dictionaryName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const suffix = normalizedName || `dictionary-${fallbackIndex + 1}`;
+
+    return `custom:${snapshot.importedAt}:${suffix}`;
+  }
+
+  private isDuplicateDictionaryName(
+    dictionaryName: string,
+    exceptDictionaryId?: string
+  ): boolean {
+    const normalizedName = dictionaryName.trim().toLowerCase();
+
+    if (!normalizedName) {
+      return false;
+    }
+
+    const builtInNames = new Set(["cet4", "cet6"]);
+    if (builtInNames.has(normalizedName)) {
+      return true;
+    }
+
+    return this.customDictionarySnapshots.some(
+      (snapshot) =>
+        snapshot.id !== exceptDictionaryId &&
+        snapshot.dictionaryName.trim().toLowerCase() === normalizedName
+    );
+  }
+
+  private isDictionaryEntryLike(this: void, entry: DictionaryEntry): boolean {
+    return (
+      Boolean(entry) &&
+      typeof entry.word === "string" &&
+      typeof entry.normalizedWord === "string" &&
+      entry.normalizedWord.length > 0 &&
+      Number.isFinite(entry.difficulty) &&
+      entry.difficulty > 0
+    );
   }
 
   private loadBuiltInDictionaryFixtures(): DictionaryEntry[] {

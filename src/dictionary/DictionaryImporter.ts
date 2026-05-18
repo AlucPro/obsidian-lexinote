@@ -93,11 +93,14 @@ export class DictionaryImporter {
 
     return {
       snapshot: {
+        id: `custom-${options.importedAt}`,
         entries,
         importedAt: options.importedAt,
         sourceFileName: options.fileName,
         dictionaryName,
         difficulty: options.difficulty,
+        enabled: true,
+        order: 0,
         stats: {
           successCount,
           failedCount,

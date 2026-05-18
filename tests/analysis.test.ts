@@ -10,7 +10,8 @@ const settings: LexiNoteSettings = {
   highlightColor: "#ffd166",
   highlightStyle: "background",
   underlineStyle: "solid",
-  dictionarySource: "built-in-only",
+  enabledDictionaryIds: ["built-in:Test"],
+  dictionaryOrder: ["built-in:Test"],
   hideKnownWords: true,
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
@@ -153,5 +154,58 @@ describe("Analyzer", () => {
 
     expect(result.difficultWords).toHaveLength(1);
     expect(result.difficultWords[0].occurrences).toHaveLength(3);
+  });
+
+  it("keeps all matching dictionary entries and highlights when any entry is difficult", () => {
+    const analyzer = new Analyzer();
+    const service = new DictionaryService();
+
+    service.loadBuiltIn([entry("robust", 4)]);
+    service.setCustomSnapshots([
+      {
+        id: "academic",
+        dictionaryName: "Academic",
+        difficulty: 9,
+        importedAt: 1,
+        sourceFileName: "academic.json",
+        enabled: true,
+        order: 1,
+        stats: {
+          successCount: 1,
+          failedCount: 0,
+          skippedCount: 0
+        },
+        entries: [
+          {
+            word: "robust",
+            normalizedWord: "robust",
+            dictionaryName: "Academic",
+            difficulty: 9,
+            meaning: "academic meaning",
+            source: "custom"
+          }
+        ]
+      }
+    ]);
+    service.rebuildEffectiveDictionary({
+      ...settings,
+      enabledDictionaryIds: ["built-in:Test", "academic"],
+      dictionaryOrder: ["built-in:Test", "academic"]
+    });
+
+    const result = analyzer.analyze({
+      filePath: "note.md",
+      text: "robust",
+      settings,
+      dictionary: service,
+      favorites: {}
+    });
+
+    expect(result.difficultWords).toHaveLength(1);
+    expect(result.difficultWords[0].dictionaryEntries.map((item) => item.difficulty)).toEqual([
+      4,
+      9
+    ]);
+    expect(result.difficultWords[0].dictionaryName).toBe("Test");
   });
 });

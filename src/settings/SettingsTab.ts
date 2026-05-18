@@ -2,7 +2,7 @@ import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import type LexiNotePlugin from "../main";
 import type { ImportOptions } from "../dictionary/DictionaryImporter";
-import type { DictionarySourceMode, HighlightStyle, UnderlineStyle } from "../types";
+import type { HighlightStyle, UnderlineStyle } from "../types";
 
 type ImportFormat = ImportOptions["format"];
 
@@ -88,16 +88,24 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("User difficulty")
       .setDesc("Words with a higher difficulty are highlighted.")
+      .setTooltip(
+        "This number represents your vocabulary level from 1 to 30. Words with a higher dictionary difficulty are treated as difficult and highlighted."
+      )
       .addText((text) => {
         text.inputEl.type = "number";
         text.inputEl.min = "1";
+        text.inputEl.max = "30";
         text.inputEl.step = "1";
         text.setValue(String(this.plugin.settings.userDifficulty));
         text.onChange((value) => {
           const nextValue = Number(value);
 
-          if (!Number.isFinite(nextValue) || nextValue <= 0) {
-            new Notice("User difficulty must be a finite positive number.");
+          if (
+            !Number.isInteger(nextValue) ||
+            nextValue < 1 ||
+            nextValue > 30
+          ) {
+            new Notice("User difficulty must be an integer from 1 to 30.");
             return;
           }
 
@@ -107,22 +115,155 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         });
       });
 
-    new Setting(containerEl)
-      .setName("Dictionary source")
-      .setDesc("Choose which dictionaries are active for analysis.")
-      .addDropdown((dropdown) => {
-        dropdown.addOption("built-in-only", "Built-in only");
-        dropdown.addOption("custom-only", "Custom only");
-        dropdown.addOption("built-in-custom", "Built-in + custom");
-        dropdown.setValue(this.plugin.settings.dictionarySource);
-        dropdown.onChange((value) => {
-          void this.plugin.updateSettings({
-            dictionarySource: value as DictionarySourceMode
-          });
-        });
-      });
+    this.renderDictionaryTable(containerEl);
 
     this.renderImportSection(containerEl);
+    this.renderRepositorySection(containerEl);
+  }
+
+  private renderDictionaryTable(containerEl: HTMLElement): void {
+    const rows = this.plugin.getDictionaryRows();
+    const wrapper = activeDocument.createElement("div");
+    wrapper.classList.add("lexinote-dictionary-table-wrapper");
+
+    const table = activeDocument.createElement("table");
+    table.classList.add("lexinote-dictionary-table");
+
+    const thead = activeDocument.createElement("thead");
+    const headerRow = activeDocument.createElement("tr");
+
+    for (const label of [
+      "Enabled",
+      "Name",
+      "Type",
+      "Difficulty",
+      "Words",
+      "Order",
+      "Actions"
+    ]) {
+      const th = activeDocument.createElement("th");
+      th.textContent = label;
+      headerRow.appendChild(th);
+    }
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = activeDocument.createElement("tbody");
+
+    for (const row of rows) {
+      const tr = activeDocument.createElement("tr");
+      tr.dataset.dictionaryId = row.id;
+
+      const enabledCell = activeDocument.createElement("td");
+      const enabledInput = activeDocument.createElement("input");
+      enabledInput.type = "checkbox";
+      enabledInput.checked = row.enabled;
+      enabledInput.addEventListener("change", () => {
+        void this.plugin.setDictionaryEnabled(row.id, enabledInput.checked);
+      });
+      enabledCell.appendChild(enabledInput);
+
+      const nameCell = activeDocument.createElement("td");
+      if (row.readonly) {
+        nameCell.textContent = row.name;
+      } else {
+        const nameInput = activeDocument.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = row.name;
+        nameInput.addEventListener("change", () => {
+          void this.plugin.updateCustomDictionary(row.id, {
+            dictionaryName: nameInput.value
+          }).then((updated) => {
+            if (updated) {
+              this.display();
+            }
+          });
+        });
+        nameCell.appendChild(nameInput);
+      }
+
+      const typeCell = activeDocument.createElement("td");
+      typeCell.textContent = row.source === "built-in" ? "Built-in" : "Imported";
+
+      const difficultyCell = activeDocument.createElement("td");
+      if (row.readonly) {
+        difficultyCell.textContent = String(row.difficulty);
+      } else {
+        const difficultyInput = activeDocument.createElement("input");
+        difficultyInput.type = "number";
+        difficultyInput.min = "1";
+        difficultyInput.max = "30";
+        difficultyInput.step = "1";
+        difficultyInput.value = String(row.difficulty);
+        difficultyInput.addEventListener("change", () => {
+          const nextDifficulty = Number(difficultyInput.value);
+
+          if (
+            !Number.isInteger(nextDifficulty) ||
+            nextDifficulty < 1 ||
+            nextDifficulty > 30
+          ) {
+            new Notice("Dictionary difficulty must be an integer from 1 to 30.");
+            difficultyInput.value = String(row.difficulty);
+            return;
+          }
+
+          void this.plugin.updateCustomDictionary(row.id, {
+            difficulty: nextDifficulty
+          });
+        });
+        difficultyCell.appendChild(difficultyInput);
+      }
+
+      const countCell = activeDocument.createElement("td");
+      countCell.textContent = String(row.entryCount);
+
+      const orderCell = activeDocument.createElement("td");
+      const upButton = activeDocument.createElement("button");
+      upButton.type = "button";
+      upButton.textContent = "Up";
+      upButton.disabled = row.order === 0;
+      upButton.addEventListener("click", () => {
+        void this.plugin.moveDictionary(row.id, -1).then(() => this.display());
+      });
+      const downButton = activeDocument.createElement("button");
+      downButton.type = "button";
+      downButton.textContent = "Down";
+      downButton.disabled = row.order === rows.length - 1;
+      downButton.addEventListener("click", () => {
+        void this.plugin.moveDictionary(row.id, 1).then(() => this.display());
+      });
+      orderCell.append(upButton, downButton);
+
+      const actionsCell = activeDocument.createElement("td");
+      if (row.readonly) {
+        actionsCell.textContent = "Read-only";
+      } else {
+        const deleteButton = activeDocument.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", () => {
+          void this.plugin.removeCustomDictionary(row.id).then(() => this.display());
+        });
+        actionsCell.appendChild(deleteButton);
+      }
+
+      tr.append(
+        enabledCell,
+        nameCell,
+        typeCell,
+        difficultyCell,
+        countCell,
+        orderCell,
+        actionsCell
+      );
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+    containerEl.appendChild(wrapper);
   }
 
   private renderImportSection(containerEl: HTMLElement): void {
@@ -156,10 +297,11 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Dictionary difficulty")
-      .setDesc("Imported words inherit this finite positive difficulty.")
+      .setDesc("Imported words inherit this difficulty from 1 to 30.")
       .addText((text) => {
         text.inputEl.type = "number";
         text.inputEl.min = "1";
+        text.inputEl.max = "30";
         text.inputEl.step = "1";
         text.setValue(String(this.importDifficulty));
         text.onChange((value) => {
@@ -169,7 +311,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Import dictionary")
-      .setDesc("Import replaces the previous custom dictionary snapshot.")
+      .setDesc("Import adds a new dictionary to the dictionary table.")
       .addButton((button) => {
         button.setButtonText("Import");
         button.setCta();
@@ -182,11 +324,25 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       cls: "lexinote-import-status"
     });
 
-    if (this.plugin.customDictionarySnapshot) {
+    if (this.plugin.customDictionarySnapshots.length > 0) {
       this.setImportStatus(
-        `Current custom dictionary: ${this.plugin.customDictionarySnapshot.dictionaryName} (${this.plugin.customDictionarySnapshot.entries.length} words)`
+        `Imported dictionaries: ${this.plugin.customDictionarySnapshots.length}`
       );
     }
+  }
+
+  private renderRepositorySection(containerEl: HTMLElement): void {
+    new Setting(containerEl).setName("Third-party dictionary repository").setHeading();
+
+    new Setting(containerEl)
+      .setName("Dictionary repository")
+      .setDesc("Download dictionary files from the third-party repository, then import them with the dictionary importer above.")
+      .addButton((button) => {
+        button.setButtonText("Open repository");
+        button.onClick(() => {
+          activeWindow.open("#", "_blank", "noopener");
+        });
+      });
   }
 
   private async importSelectedDictionary(): Promise<void> {
@@ -200,8 +356,12 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       return;
     }
 
-    if (!Number.isFinite(this.importDifficulty) || this.importDifficulty <= 0) {
-      new Notice("Dictionary difficulty must be a finite positive number.");
+    if (
+      !Number.isInteger(this.importDifficulty) ||
+      this.importDifficulty < 1 ||
+      this.importDifficulty > 30
+    ) {
+      new Notice("Dictionary difficulty must be an integer from 1 to 30.");
       return;
     }
 
@@ -225,6 +385,8 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       this.setImportStatus(
         `Imported ${result.successCount} words; failed: ${result.failedCount}; skipped: ${result.skippedCount}.`
       );
+      this.importFile = undefined;
+      this.display();
     } else {
       this.setImportStatus(
         `Import failed. ${result.errors.map((error) => error.message).join(" ")}`

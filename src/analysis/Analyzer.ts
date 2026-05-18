@@ -2,6 +2,7 @@ import { DictionaryService } from "../dictionary/DictionaryService";
 import type {
   AnalyzedDifficultWord,
   AnalyzedWordOccurrence,
+  DictionaryEntry,
   DocumentAnalysisResult,
   FavoriteWord,
   LexiNoteSettings
@@ -33,7 +34,8 @@ export class Analyzer {
     const difficultWordsByNormalizedWord = new Map<string, AnalyzedDifficultWord>();
 
     for (const token of tokens) {
-      const dictionaryEntry = this.findDictionaryEntry(token.word, input.dictionary);
+      const dictionaryEntries = this.findDictionaryEntries(token.word, input.dictionary);
+      const dictionaryEntry = dictionaryEntries[0];
 
       if (!dictionaryEntry) {
         continue;
@@ -41,7 +43,11 @@ export class Analyzer {
 
       const favorite = input.favorites[dictionaryEntry.normalizedWord];
 
-      if (!this.difficultyEvaluator.isDifficult(dictionaryEntry, input.settings, favorite)) {
+      if (
+        !dictionaryEntries.some((entry) =>
+          this.difficultyEvaluator.isDifficult(entry, input.settings, favorite)
+        )
+      ) {
         continue;
       }
 
@@ -64,6 +70,7 @@ export class Analyzer {
           meaning: dictionaryEntry.meaning,
           dictionaryName: dictionaryEntry.dictionaryName,
           difficulty: dictionaryEntry.difficulty,
+          dictionaryEntries,
           firstRange: token.range,
           occurrences: [occurrence],
           favorite: Boolean(favorite),
@@ -81,15 +88,18 @@ export class Analyzer {
     };
   }
 
-  private findDictionaryEntry(word: string, dictionary: DictionaryService) {
+  private findDictionaryEntries(
+    word: string,
+    dictionary: DictionaryService
+  ): DictionaryEntry[] {
     for (const candidate of this.normalizer.getLookupCandidates(word)) {
-      const entry = dictionary.lookup(candidate);
+      const entries = dictionary.lookupAll(candidate);
 
-      if (entry) {
-        return entry;
+      if (entries.length > 0) {
+        return entries;
       }
     }
 
-    return undefined;
+    return [];
   }
 }

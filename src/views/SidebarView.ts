@@ -2,6 +2,7 @@ import { ItemView, Setting, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { NO_LOCAL_MEANING_TEXT, SIDEBAR_VIEW_TYPE } from "../constants";
 import { LEXINOTE_ICON_ID } from "../icons";
+import { formatDictionaryEntriesMeta } from "../ui/dictionaryMeta";
 import { formatMeaningText } from "../ui/meaningText";
 import type { AnalyzedDifficultWord, DocumentAnalysisResult } from "../types";
 import type LexiNotePlugin from "../main";
@@ -116,7 +117,7 @@ export class SidebarView extends ItemView {
 
       const meta = activeDocument.createElement("div");
       meta.classList.add("lexinote-word-meta");
-      meta.textContent = `${word.dictionaryName} · ${word.difficulty}${
+      meta.textContent = `${formatDictionaryEntriesMeta(word.dictionaryEntries)}${
         favorite ? " · 已收藏" : ""
       }`;
 
