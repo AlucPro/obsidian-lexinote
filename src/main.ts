@@ -16,6 +16,10 @@ import { LEXINOTE_ICON_ID } from "./icons";
 import { LexiNoteSettingsTab } from "./settings/SettingsTab";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
+import {
+  VocabularyExporter,
+  type VocabularyExportFormat
+} from "./vocabulary/VocabularyExporter";
 import { SidebarView } from "./views/SidebarView";
 import { VocabularyLibraryView } from "./views/VocabularyLibraryView";
 import cet4Dictionary from "../resources/dictionaries/cet4.json";
@@ -38,6 +42,7 @@ export default class LexiNotePlugin extends Plugin {
   dictionaryService: DictionaryService = new DictionaryService();
   dictionaryImporter: DictionaryImporter = new DictionaryImporter();
   vocabularyStore: VocabularyStore = new VocabularyStore(this.favorites);
+  vocabularyExporter: VocabularyExporter = new VocabularyExporter();
   analysisStore: AnalysisStore = new AnalysisStore();
   analyzer: Analyzer = new Analyzer();
   highlighter?: EditorHighlighter;
@@ -61,6 +66,7 @@ export default class LexiNotePlugin extends Plugin {
     this.dictionaryService.rebuildEffectiveDictionary(this.settings);
 
     this.analysisStore = new AnalysisStore();
+    this.vocabularyExporter = new VocabularyExporter();
     this.vocabularyStore = new VocabularyStore(
       this.favorites,
       () => this.savePluginData(),
@@ -461,6 +467,22 @@ export default class LexiNotePlugin extends Plugin {
     }
   }
 
+  exportVocabulary(format: VocabularyExportFormat): void {
+    const words = this.vocabularyStore.search("", "created-desc");
+    const content =
+      format === "anki-tsv"
+        ? this.vocabularyExporter.exportAsAnkiTsv(words)
+        : this.vocabularyExporter.exportAsLexiNoteJson(words);
+    const fileName = this.vocabularyExporter.createFileName(format);
+    const mimeType =
+      format === "anki-tsv"
+        ? "text/tab-separated-values;charset=utf-8"
+        : "application/json;charset=utf-8";
+
+    this.downloadTextFile(fileName, content, mimeType);
+    new Notice(`Exported ${words.length} favorite words.`);
+  }
+
   private hydratePluginData(
     rawData: Partial<LexiNotePluginData> | null
   ): LexiNotePluginData {
@@ -511,6 +533,27 @@ export default class LexiNotePlugin extends Plugin {
       customDictionarySnapshots,
       metrics: rawData?.metrics
     };
+  }
+
+  private downloadTextFile(
+    fileName: string,
+    content: string,
+    mimeType: string
+  ): void {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = activeDocument.createElement("a");
+
+    link.href = url;
+    link.download = fileName;
+    link.classList.add("lexinote-hidden-download-link");
+    activeDocument.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    activeWindow.setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
   }
 
   private hydrateFavorites(

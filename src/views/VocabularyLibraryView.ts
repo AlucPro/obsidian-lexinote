@@ -68,10 +68,11 @@ export class VocabularyLibraryView extends ItemView {
     heading.nameEl.replaceChildren(headingIcon, headingText);
 
     const controls = this.createControls();
+    const exportControls = this.createExportControls();
     this.listContainerEl = activeDocument.createElement("div");
     this.listContainerEl.classList.add("lexinote-library-results");
 
-    container.append(controls, this.listContainerEl);
+    container.append(controls, exportControls, this.listContainerEl);
     this.renderList();
   }
 
@@ -137,6 +138,29 @@ export class VocabularyLibraryView extends ItemView {
 
     controls.append(searchInput, sortSelect);
     return controls;
+  }
+
+  private createExportControls(): HTMLElement {
+    const controls = activeDocument.createElement("div");
+    controls.classList.add("lexinote-library-export-controls");
+
+    const jsonButton = this.createExportButton("Export JSON", () => {
+      this.plugin.exportVocabulary("lexinote-json");
+    });
+    const ankiButton = this.createExportButton("Export Anki TSV", () => {
+      this.plugin.exportVocabulary("anki-tsv");
+    });
+
+    controls.append(jsonButton, ankiButton);
+    return controls;
+  }
+
+  private createExportButton(label: string, onClick: () => void): HTMLButtonElement {
+    const button = activeDocument.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.addEventListener("click", onClick);
+    return button;
   }
 
   private appendSortOption(

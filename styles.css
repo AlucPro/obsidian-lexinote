@@ -21,6 +21,10 @@
   text-decoration-style: wavy;
 }
 
+.lexinote-hidden-download-link {
+  display: none;
+}
+
 .lexinote-sidebar {
   padding: 12px;
 }
@@ -178,6 +182,13 @@
 
 .lexinote-library-controls {
   display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lexinote-library-export-controls {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
 }
