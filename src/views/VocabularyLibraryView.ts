@@ -1,7 +1,8 @@
 import { ItemView, Setting, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
-import { LIBRARY_VIEW_TYPE, NO_LOCAL_MEANING_TEXT } from "../constants";
+import { LIBRARY_VIEW_TYPE } from "../constants";
 import { LEXINOTE_ICON_ID } from "../icons";
+import { t } from "../i18n";
 import { formatMeaningText } from "../ui/meaningText";
 import type { FavoriteWord } from "../types";
 import type { VocabularySortMode } from "../stores/VocabularyStore";
@@ -23,7 +24,7 @@ export class VocabularyLibraryView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Vocabulary library";
+    return t("viewVocabularyLibrary");
   }
 
   getIcon(): string {
@@ -56,14 +57,17 @@ export class VocabularyLibraryView extends ItemView {
     container.classList.add("lexinote-library");
 
     const heading = new Setting(container).setName("").setHeading();
-    heading.settingEl.classList.add("lexinote-panel-heading");
+    heading.settingEl.classList.add(
+      "lexinote-panel-heading",
+      "lexinote-library-heading"
+    );
 
     const headingIcon = activeDocument.createElement("span");
     headingIcon.classList.add("lexinote-panel-heading-icon");
     setIcon(headingIcon, LEXINOTE_ICON_ID);
 
     const headingText = activeDocument.createElement("span");
-    headingText.textContent = "My vocabulary";
+    headingText.textContent = t("sidebarMyVocabulary");
 
     heading.nameEl.replaceChildren(headingIcon, headingText);
 
@@ -88,8 +92,8 @@ export class VocabularyLibraryView extends ItemView {
       const empty = activeDocument.createElement("p");
       empty.classList.add("lexinote-empty-state");
       empty.textContent = this.searchQuery
-        ? "No matching favorite words."
-        : "No favorite words yet.";
+        ? t("libraryNoMatches")
+        : t("libraryEmpty");
       this.listContainerEl.appendChild(empty);
       return;
     }
@@ -111,7 +115,7 @@ export class VocabularyLibraryView extends ItemView {
     const searchInput = activeDocument.createElement("input");
     searchInput.classList.add("lexinote-library-search");
     searchInput.type = "search";
-    searchInput.placeholder = "Search word or meaning";
+    searchInput.placeholder = t("librarySearchPlaceholder");
     searchInput.value = this.searchQuery;
     searchInput.addEventListener("input", () => {
       if (this.searchTimer) {
@@ -126,10 +130,10 @@ export class VocabularyLibraryView extends ItemView {
 
     const sortSelect = activeDocument.createElement("select");
     sortSelect.classList.add("lexinote-library-sort");
-    this.appendSortOption(sortSelect, "created-desc", "Newest first");
-    this.appendSortOption(sortSelect, "created-asc", "Oldest first");
-    this.appendSortOption(sortSelect, "word-asc", "A-Z");
-    this.appendSortOption(sortSelect, "word-desc", "Z-A");
+    this.appendSortOption(sortSelect, "created-desc", t("librarySortNewest"));
+    this.appendSortOption(sortSelect, "created-asc", t("librarySortOldest"));
+    this.appendSortOption(sortSelect, "word-asc", t("librarySortAZ"));
+    this.appendSortOption(sortSelect, "word-desc", t("librarySortZA"));
     sortSelect.value = this.sortMode;
     sortSelect.addEventListener("change", () => {
       this.sortMode = sortSelect.value as VocabularySortMode;
@@ -144,10 +148,10 @@ export class VocabularyLibraryView extends ItemView {
     const controls = activeDocument.createElement("div");
     controls.classList.add("lexinote-library-export-controls");
 
-    const jsonButton = this.createExportButton("Export JSON", () => {
+    const jsonButton = this.createExportButton(t("libraryExportJson"), () => {
       this.plugin.exportVocabulary("lexinote-json");
     });
-    const ankiButton = this.createExportButton("Export Anki TSV", () => {
+    const ankiButton = this.createExportButton(t("libraryExportAnkiTsv"), () => {
       this.plugin.exportVocabulary("anki-tsv");
     });
 
@@ -190,7 +194,9 @@ export class VocabularyLibraryView extends ItemView {
 
     const knownButton = activeDocument.createElement("button");
     knownButton.type = "button";
-    knownButton.textContent = word.known ? "取消熟悉" : "标熟";
+    knownButton.textContent = word.known
+      ? t("libraryUnmarkKnown")
+      : t("libraryMarkKnown");
     knownButton.addEventListener("click", () => {
       this.plugin.vocabularyStore.toggleKnown(word.normalizedWord);
       void this.plugin.reanalyzeActiveDocument("favorites-change");
@@ -198,7 +204,7 @@ export class VocabularyLibraryView extends ItemView {
 
     const deleteButton = activeDocument.createElement("button");
     deleteButton.type = "button";
-    deleteButton.textContent = "删除";
+    deleteButton.textContent = t("actionDelete");
     deleteButton.addEventListener("click", () => {
       this.plugin.vocabularyStore.remove(word.normalizedWord);
       void this.plugin.reanalyzeActiveDocument("favorites-change");
@@ -209,13 +215,13 @@ export class VocabularyLibraryView extends ItemView {
 
     const meaning = activeDocument.createElement("div");
     meaning.classList.add("lexinote-word-meaning");
-    meaning.textContent = formatMeaningText(word.meaning, NO_LOCAL_MEANING_TEXT);
+    meaning.textContent = formatMeaningText(word.meaning, t("noLocalMeaning"));
 
     const meta = activeDocument.createElement("div");
     meta.classList.add("lexinote-word-meta");
     meta.textContent = `${this.formatDictionaryMeta(word)} · ${this.formatDate(
       word.createdAt
-    )} · ${word.known ? "已熟悉" : "未熟悉"}`;
+    )} · ${word.known ? t("libraryKnown") : t("libraryNotKnown")}`;
 
     item.append(header, meaning, meta);
     return item;
@@ -223,7 +229,7 @@ export class VocabularyLibraryView extends ItemView {
 
   private formatDictionaryMeta(word: FavoriteWord): string {
     if (!word.dictionaryName || !word.difficulty) {
-      return "Unknown";
+      return t("unknown");
     }
 
     return `${word.dictionaryName} · ${word.difficulty}`;

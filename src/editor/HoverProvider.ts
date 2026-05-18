@@ -1,6 +1,6 @@
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { NO_LOCAL_MEANING_TEXT } from "../constants";
+import { t } from "../i18n";
 import { formatDictionaryEntriesMeta } from "../ui/dictionaryMeta";
 import { formatMeaningText } from "../ui/meaningText";
 import type {
@@ -132,7 +132,7 @@ export class HoverProvider {
     meaning.classList.add("lexinote-hover-meaning");
     meaning.textContent = formatMeaningText(
       match.difficultWord.meaning,
-      NO_LOCAL_MEANING_TEXT
+      t("noLocalMeaning")
     );
 
     const fallbackStatus = activeDocument.createElement("div");
@@ -148,13 +148,14 @@ export class HoverProvider {
     const meta = activeDocument.createElement("div");
     meta.classList.add("lexinote-hover-meta");
     meta.textContent = formatDictionaryEntriesMeta(
-      match.difficultWord.dictionaryEntries
+      match.difficultWord.dictionaryEntries,
+      t("unknown")
     );
 
     const button = activeDocument.createElement("button");
     button.classList.add("lexinote-hover-action");
     button.type = "button";
-    button.textContent = favorite ? "取消收藏" : "收藏";
+    button.textContent = favorite ? t("toggleFavoriteRemove") : t("toggleFavoriteAdd");
     button.addEventListener("click", (clickEvent) => {
       clickEvent.preventDefault();
       clickEvent.stopPropagation();
@@ -177,7 +178,7 @@ export class HoverProvider {
     if (fallbackButton) {
       card.append(fallbackButton, fallbackStatus);
     } else if (!match.difficultWord.meaning && this.plugin.settings.fallbackApiEnabled) {
-      fallbackStatus.textContent = "Fallback endpoint is not configured.";
+      fallbackStatus.textContent = t("fallbackEndpointNotConfigured");
       card.append(fallbackStatus);
     }
 
@@ -204,12 +205,12 @@ export class HoverProvider {
     const button = activeDocument.createElement("button");
     button.classList.add("lexinote-hover-fallback-action");
     button.type = "button";
-    button.textContent = "查询释义";
+    button.textContent = t("fallbackLookup");
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       button.disabled = true;
-      statusEl.textContent = "查询中...";
+      statusEl.textContent = t("fallbackLookupInProgress");
 
       void (async () => {
         try {
@@ -221,14 +222,15 @@ export class HoverProvider {
           if (result.meaning) {
             meaningEl.textContent = formatMeaningText(
               result.meaning,
-              NO_LOCAL_MEANING_TEXT
+              t("noLocalMeaning")
             );
-            statusEl.textContent = "远程释义";
+            statusEl.textContent = t("fallbackRemoteMeaning");
           } else {
-            statusEl.textContent = result.error ?? "查询失败";
+            statusEl.textContent = result.error ?? t("fallbackLookupFailed");
           }
         } catch (error) {
-          statusEl.textContent = error instanceof Error ? error.message : "查询失败";
+          statusEl.textContent =
+            error instanceof Error ? error.message : t("fallbackLookupFailed");
         } finally {
           button.disabled = false;
         }

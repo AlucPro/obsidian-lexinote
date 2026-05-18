@@ -3,12 +3,13 @@ import type { App } from "obsidian";
 import type LexiNotePlugin from "../main";
 import type { ImportOptions } from "../dictionary/DictionaryImporter";
 import type { HighlightStyle, UnderlineStyle } from "../types";
+import { t } from "../i18n";
 
 type ImportFormat = ImportOptions["format"];
 
 export class LexiNoteSettingsTab extends PluginSettingTab {
   private importFile?: File;
-  private importDictionaryName = "Custom dictionary";
+  private importDictionaryName = t("settingsDefaultDictionaryName");
   private importDifficulty = 8;
   private importStatusEl?: HTMLElement;
 
@@ -20,14 +21,14 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("UI display").setHeading();
+    new Setting(containerEl).setName(t("settingsUiDisplay")).setHeading();
 
     new Setting(containerEl)
-      .setName("Highlight style")
-      .setDesc("Choose how difficult words are marked in the editor.")
+      .setName(t("settingsHighlightStyle"))
+      .setDesc(t("settingsHighlightStyleDesc"))
       .addDropdown((dropdown) => {
-        dropdown.addOption("background", "Background");
-        dropdown.addOption("underline", "Underline");
+        dropdown.addOption("background", t("settingsHighlightStyleBackground"));
+        dropdown.addOption("underline", t("settingsHighlightStyleUnderline"));
         dropdown.setValue(this.plugin.settings.highlightStyle);
         dropdown.onChange((value) => {
           void this.plugin.updateSettings({
@@ -38,14 +39,14 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Highlight color")
-      .setDesc("Color used for the highlight background or underline.")
+      .setName(t("settingsHighlightColor"))
+      .setDesc(t("settingsHighlightColorDesc"))
       .addText((text) => {
         text.inputEl.type = "color";
         text.setValue(this.plugin.settings.highlightColor);
         text.onChange((value) => {
           if (!value.trim()) {
-            new Notice("Highlight color cannot be empty.");
+            new Notice(t("noticeHighlightColorEmpty"));
             return;
           }
 
@@ -57,11 +58,11 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     if (this.plugin.settings.highlightStyle === "underline") {
       new Setting(containerEl)
-        .setName("Underline style")
-        .setDesc("Choose whether underline highlights are straight or wavy.")
+        .setName(t("settingsUnderlineStyle"))
+        .setDesc(t("settingsUnderlineStyleDesc"))
         .addDropdown((dropdown) => {
-          dropdown.addOption("solid", "Straight");
-          dropdown.addOption("wavy", "Wavy");
+          dropdown.addOption("solid", t("settingsUnderlineStyleSolid"));
+          dropdown.addOption("wavy", t("settingsUnderlineStyleWavy"));
           dropdown.setValue(this.plugin.settings.underlineStyle);
           dropdown.onChange((value) => {
             void this.plugin.updateSettings({
@@ -72,8 +73,8 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     }
 
     new Setting(containerEl)
-      .setName("Hide known words")
-      .setDesc("Do not highlight favorite words marked as known.")
+      .setName(t("settingsHideKnownWords"))
+      .setDesc(t("settingsHideKnownWordsDesc"))
       .addToggle((toggle) => {
         toggle.setValue(this.plugin.settings.hideKnownWords);
         toggle.onChange((value) => {
@@ -83,14 +84,12 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         });
       });
 
-    new Setting(containerEl).setName("Difficulty and dictionaries").setHeading();
+    new Setting(containerEl).setName(t("settingsDifficultyAndDictionaries")).setHeading();
 
     new Setting(containerEl)
-      .setName("User difficulty")
-      .setDesc("Words with a higher difficulty are highlighted.")
-      .setTooltip(
-        "This number represents your vocabulary level from 1 to 30. Words with a higher dictionary difficulty are treated as difficult and highlighted."
-      )
+      .setName(t("settingsUserDifficulty"))
+      .setDesc(t("settingsUserDifficultyDesc"))
+      .setTooltip(t("settingsUserDifficultyTooltip"))
       .addText((text) => {
         text.inputEl.type = "number";
         text.inputEl.min = "1";
@@ -105,7 +104,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
             nextValue < 1 ||
             nextValue > 30
           ) {
-            new Notice("User difficulty must be an integer from 1 to 30.");
+            new Notice(t("noticeUserDifficultyInvalid"));
             return;
           }
 
@@ -133,13 +132,13 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     const headerRow = activeDocument.createElement("tr");
 
     for (const label of [
-      "Enabled",
-      "Name",
-      "Type",
-      "Difficulty",
-      "Words",
-      "Order",
-      "Actions"
+      t("settingsTableEnabled"),
+      t("settingsTableName"),
+      t("settingsTableType"),
+      t("settingsTableDifficulty"),
+      t("settingsTableWords"),
+      t("settingsTableOrder"),
+      t("settingsTableActions")
     ]) {
       const th = activeDocument.createElement("th");
       th.textContent = label;
@@ -184,7 +183,10 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       }
 
       const typeCell = activeDocument.createElement("td");
-      typeCell.textContent = row.source === "built-in" ? "Built-in" : "Imported";
+      typeCell.textContent =
+        row.source === "built-in"
+          ? t("dictionaryTypeBuiltIn")
+          : t("dictionaryTypeImported");
 
       const difficultyCell = activeDocument.createElement("td");
       if (row.readonly) {
@@ -204,7 +206,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
             nextDifficulty < 1 ||
             nextDifficulty > 30
           ) {
-            new Notice("Dictionary difficulty must be an integer from 1 to 30.");
+            new Notice(t("noticeDictionaryDifficultyInvalid"));
             difficultyInput.value = String(row.difficulty);
             return;
           }
@@ -222,14 +224,14 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       const orderCell = activeDocument.createElement("td");
       const upButton = activeDocument.createElement("button");
       upButton.type = "button";
-      upButton.textContent = "Up";
+      upButton.textContent = t("actionUp");
       upButton.disabled = row.order === 0;
       upButton.addEventListener("click", () => {
         void this.plugin.moveDictionary(row.id, -1).then(() => this.display());
       });
       const downButton = activeDocument.createElement("button");
       downButton.type = "button";
-      downButton.textContent = "Down";
+      downButton.textContent = t("actionDown");
       downButton.disabled = row.order === rows.length - 1;
       downButton.addEventListener("click", () => {
         void this.plugin.moveDictionary(row.id, 1).then(() => this.display());
@@ -238,11 +240,11 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
       const actionsCell = activeDocument.createElement("td");
       if (row.readonly) {
-        actionsCell.textContent = "Read-only";
+        actionsCell.textContent = t("actionReadOnly");
       } else {
         const deleteButton = activeDocument.createElement("button");
         deleteButton.type = "button";
-        deleteButton.textContent = "Delete";
+        deleteButton.textContent = t("actionDelete");
         deleteButton.addEventListener("click", () => {
           void this.plugin.removeCustomDictionary(row.id).then(() => this.display());
         });
@@ -267,11 +269,11 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
   }
 
   private renderImportSection(containerEl: HTMLElement): void {
-    new Setting(containerEl).setName("Custom dictionary import").setHeading();
+    new Setting(containerEl).setName(t("settingsCustomDictionaryImport")).setHeading();
 
     new Setting(containerEl)
-      .setName("Dictionary file")
-      .setDesc("Choose a JSON, CSV, or txt dictionary file.")
+      .setName(t("settingsDictionaryFile"))
+      .setDesc(t("settingsDictionaryFileDesc"))
       .then((setting) => {
         const fileInput = activeDocument.createElement("input");
         fileInput.type = "file";
@@ -279,15 +281,15 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         fileInput.addEventListener("change", () => {
           this.importFile = fileInput.files?.[0];
           this.setImportStatus(
-            this.importFile ? `Selected: ${this.importFile.name}` : ""
+            this.importFile ? t("settingsSelectedFile", { fileName: this.importFile.name }) : ""
           );
         });
         setting.controlEl.appendChild(fileInput);
       });
 
     new Setting(containerEl)
-      .setName("Dictionary name")
-      .setDesc("Shown in word metadata.")
+      .setName(t("settingsDictionaryName"))
+      .setDesc(t("settingsDictionaryNameDesc"))
       .addText((text) => {
         text.setValue(this.importDictionaryName);
         text.onChange((value) => {
@@ -296,8 +298,8 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Dictionary difficulty")
-      .setDesc("Imported words inherit this difficulty from 1 to 30.")
+      .setName(t("settingsDictionaryDifficulty"))
+      .setDesc(t("settingsDictionaryDifficultyDesc"))
       .addText((text) => {
         text.inputEl.type = "number";
         text.inputEl.min = "1";
@@ -310,10 +312,10 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Import dictionary")
-      .setDesc("Import adds a new dictionary to the dictionary table.")
+      .setName(t("settingsImportDictionary"))
+      .setDesc(t("settingsImportDictionaryDesc"))
       .addButton((button) => {
-        button.setButtonText("Import");
+        button.setButtonText(t("actionImport"));
         button.setCta();
         button.onClick(() => {
           void this.importSelectedDictionary();
@@ -326,19 +328,21 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     if (this.plugin.customDictionarySnapshots.length > 0) {
       this.setImportStatus(
-        `Imported dictionaries: ${this.plugin.customDictionarySnapshots.length}`
+        t("settingsImportedDictionaries", {
+          count: this.plugin.customDictionarySnapshots.length
+        })
       );
     }
   }
 
   private renderRepositorySection(containerEl: HTMLElement): void {
-    new Setting(containerEl).setName("Third-party dictionary repository").setHeading();
+    new Setting(containerEl).setName(t("settingsThirdPartyDictionaryRepository")).setHeading();
 
     new Setting(containerEl)
-      .setName("Dictionary repository")
-      .setDesc("Download dictionary files from the third-party repository, then import them with the dictionary importer above.")
+      .setName(t("settingsDictionaryRepository"))
+      .setDesc(t("settingsDictionaryRepositoryDesc"))
       .addButton((button) => {
-        button.setButtonText("Open repository");
+        button.setButtonText(t("actionOpenRepository"));
         button.onClick(() => {
           activeWindow.open("#", "_blank", "noopener");
         });
@@ -347,12 +351,12 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
   private async importSelectedDictionary(): Promise<void> {
     if (!this.importFile) {
-      new Notice("Choose a dictionary file first.");
+      new Notice(t("noticeChooseDictionaryFile"));
       return;
     }
 
     if (!this.importDictionaryName.trim()) {
-      new Notice("Dictionary name is required.");
+      new Notice(t("noticeDictionaryNameRequired"));
       return;
     }
 
@@ -361,14 +365,14 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       this.importDifficulty < 1 ||
       this.importDifficulty > 30
     ) {
-      new Notice("Dictionary difficulty must be an integer from 1 to 30.");
+      new Notice(t("noticeDictionaryDifficultyInvalid"));
       return;
     }
 
     const format = this.getImportFormat(this.importFile.name);
 
     if (!format) {
-      new Notice("Dictionary file must be JSON, CSV, or txt.");
+      new Notice(t("noticeDictionaryFileInvalid"));
       return;
     }
 
@@ -383,13 +387,19 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     if (result.snapshot) {
       this.setImportStatus(
-        `Imported ${result.successCount} words; failed: ${result.failedCount}; skipped: ${result.skippedCount}.`
+        t("settingsImportResult", {
+          successCount: result.successCount,
+          failedCount: result.failedCount,
+          skippedCount: result.skippedCount
+        })
       );
       this.importFile = undefined;
       this.display();
     } else {
       this.setImportStatus(
-        `Import failed. ${result.errors.map((error) => error.message).join(" ")}`
+        t("settingsImportFailed", {
+          message: result.errors.map((error) => error.message).join(" ")
+        })
       );
     }
   }

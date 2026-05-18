@@ -126,6 +126,7 @@ export type RefreshReason =
   | "startup"
   | "editor-change"
   | "active-file-change"
+  | "active-leaf-change"
   | "settings-change"
   | "dictionary-change"
   | "favorites-change";

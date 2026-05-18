@@ -12,6 +12,7 @@ import { DictionaryImporter } from "./dictionary/DictionaryImporter";
 import { EditorHighlighter } from "./editor/EditorHighlighter";
 import { HoverProvider } from "./editor/HoverProvider";
 import { FallbackDefinitionClient } from "./fallback/FallbackDefinitionClient";
+import { t } from "./i18n";
 import { LEXINOTE_ICON_ID } from "./icons";
 import { LexiNoteSettingsTab } from "./settings/SettingsTab";
 import { AnalysisStore } from "./stores/AnalysisStore";
@@ -22,6 +23,8 @@ import {
 } from "./vocabulary/VocabularyExporter";
 import { SidebarView } from "./views/SidebarView";
 import { VocabularyLibraryView } from "./views/VocabularyLibraryView";
+import { ActiveMarkdownFileResolver } from "./workspace/ActiveMarkdownFileResolver";
+import { SidebarViewBootstrap } from "./workspace/SidebarViewBootstrap";
 import cet4Dictionary from "../resources/dictionaries/cet4.json";
 import cet6Dictionary from "../resources/dictionaries/cet6.json";
 import type {
@@ -33,6 +36,7 @@ import type {
   LexiNoteSettings,
   RefreshReason
 } from "./types";
+import type { TFile } from "obsidian";
 import type { ImportOptions } from "./dictionary/DictionaryImporter";
 
 export default class LexiNotePlugin extends Plugin {
@@ -48,6 +52,7 @@ export default class LexiNotePlugin extends Plugin {
   highlighter?: EditorHighlighter;
   hoverProvider?: HoverProvider;
   fallbackClient: FallbackDefinitionClient = new FallbackDefinitionClient();
+  activeMarkdownFileResolver = new ActiveMarkdownFileResolver<TFile>();
   private reanalyzeTimer?: number;
   private pendingEditorAnalysis?:
     | {
@@ -79,13 +84,13 @@ export default class LexiNotePlugin extends Plugin {
     this.highlighter = new EditorHighlighter(this.app);
     this.hoverProvider = new HoverProvider(this);
 
-    this.addRibbonIcon(LEXINOTE_ICON_ID, "Open current document word list", () => {
+    this.addRibbonIcon(LEXINOTE_ICON_ID, t("commandOpenCurrentDocumentWordList"), () => {
       void this.activateSidebarView();
     });
 
     this.addCommand({
       id: "reanalyze-active-document",
-      name: "Reanalyze active document",
+      name: t("commandReanalyzeActiveDocument"),
       callback: () => {
         void this.reanalyzeActiveDocument("active-file-change");
       }
@@ -93,7 +98,7 @@ export default class LexiNotePlugin extends Plugin {
 
     this.addCommand({
       id: "open-current-document-word-list",
-      name: "Open current document word list",
+      name: t("commandOpenCurrentDocumentWordList"),
       callback: () => {
         void this.activateSidebarView();
       }
@@ -101,19 +106,29 @@ export default class LexiNotePlugin extends Plugin {
 
     this.addCommand({
       id: "open-vocabulary-library",
-      name: "Open vocabulary library",
+      name: t("commandOpenVocabularyLibrary"),
       callback: () => {
         void this.activateLibraryView();
       }
     });
 
     this.registerViews();
+    new SidebarViewBootstrap(this.app.workspace, [
+      SIDEBAR_VIEW_TYPE,
+      LIBRARY_VIEW_TYPE
+    ]).register();
     this.registerEditorIntegration();
     this.addSettingTab(new LexiNoteSettingsTab(this.app, this));
 
     this.registerEvent(
       this.app.workspace.on("file-open", () => {
         void this.reanalyzeActiveDocument("active-file-change");
+      })
+    );
+
+    this.registerEvent(
+      this.app.workspace.on("active-leaf-change", () => {
+        void this.reanalyzeActiveDocument("active-leaf-change");
       })
     );
 
@@ -223,14 +238,14 @@ export default class LexiNotePlugin extends Plugin {
           }
         ]
       };
-      new Notice("Dictionary name already exists.");
+      new Notice(t("noticeDictionaryNameExists"));
       return result;
     }
 
     const result = this.dictionaryImporter.import(options);
 
     if (!result.snapshot) {
-      new Notice("Dictionary import failed.");
+      new Notice(t("noticeDictionaryImportFailed"));
       return result;
     }
 
@@ -252,7 +267,7 @@ export default class LexiNotePlugin extends Plugin {
     await this.savePluginData();
     this.refreshDictionary();
     await this.reanalyzeActiveDocument("dictionary-change");
-    new Notice(`Imported ${result.successCount} words into LexiNote.`);
+    new Notice(t("noticeImportedWords", { count: result.successCount }));
 
     return result;
   }
@@ -309,7 +324,7 @@ export default class LexiNotePlugin extends Plugin {
       nextName &&
       this.isDuplicateDictionaryName(nextName, dictionaryId)
     ) {
-      new Notice("Dictionary name already exists.");
+      new Notice(t("noticeDictionaryNameExists"));
       return false;
     }
 
@@ -361,9 +376,11 @@ export default class LexiNotePlugin extends Plugin {
   }
 
   async reanalyzeActiveDocument(reason: RefreshReason): Promise<void> {
-    const activeFile = this.app.workspace.getActiveFile();
+    const activeFile = this.activeMarkdownFileResolver.resolve(
+      this.app.workspace.getActiveFile()
+    );
 
-    if (!activeFile || activeFile.extension !== "md") {
+    if (!activeFile) {
       this.analysisStore.setCurrent(undefined);
       this.highlighter?.update(undefined, this.settings);
       return;
@@ -382,7 +399,7 @@ export default class LexiNotePlugin extends Plugin {
     this.highlighter?.update(result, this.settings);
 
     if (reason === "startup" || reason === "active-file-change") {
-      new Notice(`LexiNote found ${result.difficultWords.length} difficult words.`);
+      new Notice(t("noticeLexiNoteFound", { count: result.difficultWords.length }));
     }
   }
 
@@ -424,7 +441,7 @@ export default class LexiNotePlugin extends Plugin {
       const leaf = this.app.workspace.getRightLeaf(false);
 
       if (!leaf) {
-        new Notice("Unable to open sidebar.");
+        new Notice(t("noticeUnableOpenSidebar"));
         return;
       }
 
@@ -450,7 +467,7 @@ export default class LexiNotePlugin extends Plugin {
       const leaf = this.app.workspace.getRightLeaf(false);
 
       if (!leaf) {
-        new Notice("Unable to open vocabulary library.");
+        new Notice(t("noticeUnableOpenLibrary"));
         return;
       }
 
@@ -480,7 +497,7 @@ export default class LexiNotePlugin extends Plugin {
         : "application/json;charset=utf-8";
 
     this.downloadTextFile(fileName, content, mimeType);
-    new Notice(`Exported ${words.length} favorite words.`);
+    new Notice(t("noticeExportedFavorites", { count: words.length }));
   }
 
   private hydratePluginData(
@@ -751,6 +768,7 @@ export default class LexiNotePlugin extends Plugin {
     info: MarkdownFileInfo
   ): void {
     const file = info.file;
+    this.activeMarkdownFileResolver.resolve(file);
 
     if (!file || file.extension !== "md") {
       this.analysisStore.setCurrent(undefined);

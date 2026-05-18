@@ -177,13 +177,18 @@
 }
 
 .lexinote-library {
-  padding: 12px;
+  padding: 16px;
+}
+
+.lexinote-library-heading {
+  margin-bottom: 16px;
 }
 
 .lexinote-library-controls {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .lexinote-library-export-controls {
@@ -194,12 +199,13 @@
 }
 
 .lexinote-library-search {
-  flex: 1 1 auto;
+  flex: 1 1 180px;
   min-width: 0;
 }
 
 .lexinote-library-sort {
   flex: 0 0 auto;
+  max-width: 100%;
 }
 
 .lexinote-library-list {
@@ -223,6 +229,7 @@
 .lexinote-library-actions {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
   gap: 6px;
 }
 

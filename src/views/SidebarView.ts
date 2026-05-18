@@ -1,7 +1,8 @@
 import { ItemView, Setting, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
-import { NO_LOCAL_MEANING_TEXT, SIDEBAR_VIEW_TYPE } from "../constants";
+import { SIDEBAR_VIEW_TYPE } from "../constants";
 import { LEXINOTE_ICON_ID } from "../icons";
+import { t } from "../i18n";
 import { formatDictionaryEntriesMeta } from "../ui/dictionaryMeta";
 import { formatMeaningText } from "../ui/meaningText";
 import type { AnalyzedDifficultWord, DocumentAnalysisResult } from "../types";
@@ -20,7 +21,7 @@ export class SidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Current document word list";
+    return t("viewCurrentDocumentWordList");
   }
 
   getIcon(): string {
@@ -59,14 +60,14 @@ export class SidebarView extends ItemView {
     setIcon(headingIcon, LEXINOTE_ICON_ID);
 
     const headingText = activeDocument.createElement("span");
-    headingText.textContent = "Current difficult words";
+    headingText.textContent = t("sidebarCurrentDifficultWords");
 
     heading.nameEl.replaceChildren(headingIcon, headingText);
 
     const libraryButton = activeDocument.createElement("button");
     libraryButton.classList.add("lexinote-sidebar-library-button");
     libraryButton.type = "button";
-    libraryButton.textContent = "My vocabulary";
+    libraryButton.textContent = t("sidebarMyVocabulary");
     libraryButton.addEventListener("click", () => {
       void this.plugin.activateLibraryView();
     });
@@ -75,12 +76,12 @@ export class SidebarView extends ItemView {
     container.appendChild(toolbar);
 
     if (!this.currentResult) {
-      this.appendEmptyState(container, "No active Markdown document.");
+      this.appendEmptyState(container, t("noMarkdownDocument"));
       return;
     }
 
     if (this.currentResult.difficultWords.length === 0) {
-      this.appendEmptyState(container, "No difficult words found.");
+      this.appendEmptyState(container, t("noDifficultWordsFound"));
       return;
     }
 
@@ -102,10 +103,10 @@ export class SidebarView extends ItemView {
       const button = activeDocument.createElement("button");
       button.classList.add("lexinote-word-action");
       button.type = "button";
-      button.textContent = favorite ? "取消收藏" : "收藏";
+      button.textContent = favorite ? t("toggleFavoriteRemove") : t("toggleFavoriteAdd");
       button.setAttribute(
         "aria-label",
-        `${favorite ? "取消收藏" : "收藏"} ${word.word}`
+        `${favorite ? t("toggleFavoriteRemove") : t("toggleFavoriteAdd")} ${word.word}`
       );
       button.addEventListener("click", () => {
         this.toggleFavorite(word);
@@ -113,12 +114,12 @@ export class SidebarView extends ItemView {
 
       const meaning = activeDocument.createElement("div");
       meaning.classList.add("lexinote-word-meaning");
-      meaning.textContent = formatMeaningText(word.meaning, NO_LOCAL_MEANING_TEXT);
+      meaning.textContent = formatMeaningText(word.meaning, t("noLocalMeaning"));
 
       const meta = activeDocument.createElement("div");
       meta.classList.add("lexinote-word-meta");
-      meta.textContent = `${formatDictionaryEntriesMeta(word.dictionaryEntries)}${
-        favorite ? " · 已收藏" : ""
+      meta.textContent = `${formatDictionaryEntriesMeta(word.dictionaryEntries, t("unknown"))}${
+        favorite ? ` · ${t("sidebarFavoritedMeta")}` : ""
       }`;
 
       header.append(title, button);

@@ -1,8 +1,11 @@
 import type { DictionaryEntry } from "../types";
 
-export function formatDictionaryEntriesMeta(entries: DictionaryEntry[]): string {
+export function formatDictionaryEntriesMeta(
+  entries: DictionaryEntry[],
+  unknownLabel = "Unknown"
+): string {
   if (entries.length === 0) {
-    return "Unknown";
+    return unknownLabel;
   }
 
   return entries
