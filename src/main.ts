@@ -159,6 +159,20 @@ export default class LexiNotePlugin extends Plugin {
       this.settings.highlightColor = DEFAULT_SETTINGS.highlightColor;
     }
 
+    if (
+      this.settings.highlightStyle !== "background" &&
+      this.settings.highlightStyle !== "underline"
+    ) {
+      this.settings.highlightStyle = DEFAULT_SETTINGS.highlightStyle;
+    }
+
+    if (
+      this.settings.underlineStyle !== "solid" &&
+      this.settings.underlineStyle !== "wavy"
+    ) {
+      this.settings.underlineStyle = DEFAULT_SETTINGS.underlineStyle;
+    }
+
     await this.savePluginData();
     this.refreshDictionary();
     await this.reanalyzeActiveDocument("settings-change");
@@ -311,6 +325,20 @@ export default class LexiNotePlugin extends Plugin {
 
     if (!hydratedSettings.highlightColor) {
       hydratedSettings.highlightColor = DEFAULT_SETTINGS.highlightColor;
+    }
+
+    if (
+      hydratedSettings.highlightStyle !== "background" &&
+      hydratedSettings.highlightStyle !== "underline"
+    ) {
+      hydratedSettings.highlightStyle = DEFAULT_SETTINGS.highlightStyle;
+    }
+
+    if (
+      hydratedSettings.underlineStyle !== "solid" &&
+      hydratedSettings.underlineStyle !== "wavy"
+    ) {
+      hydratedSettings.underlineStyle = DEFAULT_SETTINGS.underlineStyle;
     }
 
     hydratedSettings.dictionarySource = this.hydrateDictionarySource(

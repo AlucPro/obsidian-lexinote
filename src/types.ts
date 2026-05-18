@@ -7,6 +7,10 @@ export type DictionarySourceMode =
   | "custom-only"
   | "built-in-custom";
 
+export type HighlightStyle = "background" | "underline";
+
+export type UnderlineStyle = "solid" | "wavy";
+
 export interface DictionaryEntry {
   word: string;
   normalizedWord: string;
@@ -58,6 +62,8 @@ export interface CustomDictionarySnapshot {
 export interface LexiNoteSettings {
   userDifficulty: DictionaryDifficulty;
   highlightColor: string;
+  highlightStyle: HighlightStyle;
+  underlineStyle: UnderlineStyle;
   dictionarySource: DictionarySourceMode;
   hideKnownWords: boolean;
   fallbackApiEnabled: boolean;

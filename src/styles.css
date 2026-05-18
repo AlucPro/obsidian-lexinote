@@ -1,5 +1,24 @@
 .lexinote-highlight {
+  text-decoration-skip-ink: auto;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.16em;
+}
+
+.lexinote-highlight-background {
   background-color: var(--lexinote-highlight-color, #fff3a3);
+}
+
+.lexinote-highlight-underline {
+  text-decoration-color: var(--lexinote-highlight-color, #fff3a3);
+  text-decoration-line: underline;
+}
+
+.lexinote-highlight-underline-solid {
+  text-decoration-style: solid;
+}
+
+.lexinote-highlight-underline-wavy {
+  text-decoration-style: wavy;
 }
 
 .lexinote-sidebar {

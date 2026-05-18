@@ -6,6 +6,8 @@ import type { LexiNoteSettings } from "../src/types";
 const settings: LexiNoteSettings = {
   userDifficulty: 4,
   highlightColor: "#ffd166",
+  highlightStyle: "background",
+  underlineStyle: "solid",
   dictionarySource: "built-in-only",
   hideKnownWords: true,
   fallbackApiEnabled: true,

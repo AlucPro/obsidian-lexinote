@@ -12,6 +12,27 @@ interface HighlightPayload {
 
 const setAnalysisEffect = StateEffect.define<HighlightPayload>();
 
+export function buildHighlightAttributes(settings: LexiNoteSettings): {
+  class: string;
+  style: string;
+} {
+  const classes = ["lexinote-highlight"];
+
+  if (settings.highlightStyle === "underline") {
+    classes.push(
+      "lexinote-highlight-underline",
+      `lexinote-highlight-underline-${settings.underlineStyle}`
+    );
+  } else {
+    classes.push("lexinote-highlight-background");
+  }
+
+  return {
+    class: classes.join(" "),
+    style: `--lexinote-highlight-color: ${settings.highlightColor};`
+  };
+}
+
 function buildDecorations(
   result: DocumentAnalysisResult | undefined,
   settings: LexiNoteSettings
@@ -23,10 +44,7 @@ function buildDecorations(
   }
 
   const mark = Decoration.mark({
-    attributes: {
-      class: "lexinote-highlight",
-      style: `--lexinote-highlight-color: ${settings.highlightColor};`
-    }
+    attributes: buildHighlightAttributes(settings)
   });
 
   const occurrences = result.difficultWords

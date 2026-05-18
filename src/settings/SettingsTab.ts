@@ -2,7 +2,7 @@ import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import type LexiNotePlugin from "../main";
 import type { ImportOptions } from "../dictionary/DictionaryImporter";
-import type { DictionarySourceMode } from "../types";
+import type { DictionarySourceMode, HighlightStyle, UnderlineStyle } from "../types";
 
 type ImportFormat = ImportOptions["format"];
 
@@ -19,6 +19,71 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
+
+    new Setting(containerEl).setName("UI display").setHeading();
+
+    new Setting(containerEl)
+      .setName("Highlight style")
+      .setDesc("Choose how difficult words are marked in the editor.")
+      .addDropdown((dropdown) => {
+        dropdown.addOption("background", "Background");
+        dropdown.addOption("underline", "Underline");
+        dropdown.setValue(this.plugin.settings.highlightStyle);
+        dropdown.onChange((value) => {
+          void this.plugin.updateSettings({
+            highlightStyle: value as HighlightStyle
+          });
+          this.display();
+        });
+      });
+
+    new Setting(containerEl)
+      .setName("Highlight color")
+      .setDesc("Color used for the highlight background or underline.")
+      .addText((text) => {
+        text.inputEl.type = "color";
+        text.setValue(this.plugin.settings.highlightColor);
+        text.onChange((value) => {
+          if (!value.trim()) {
+            new Notice("Highlight color cannot be empty.");
+            return;
+          }
+
+          void this.plugin.updateSettings({
+            highlightColor: value
+          });
+        });
+      });
+
+    if (this.plugin.settings.highlightStyle === "underline") {
+      new Setting(containerEl)
+        .setName("Underline style")
+        .setDesc("Choose whether underline highlights are straight or wavy.")
+        .addDropdown((dropdown) => {
+          dropdown.addOption("solid", "Straight");
+          dropdown.addOption("wavy", "Wavy");
+          dropdown.setValue(this.plugin.settings.underlineStyle);
+          dropdown.onChange((value) => {
+            void this.plugin.updateSettings({
+              underlineStyle: value as UnderlineStyle
+            });
+          });
+        });
+    }
+
+    new Setting(containerEl)
+      .setName("Hide known words")
+      .setDesc("Do not highlight favorite words marked as known.")
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.settings.hideKnownWords);
+        toggle.onChange((value) => {
+          void this.plugin.updateSettings({
+            hideKnownWords: value
+          });
+        });
+      });
+
+    new Setting(containerEl).setName("Difficulty and dictionaries").setHeading();
 
     new Setting(containerEl)
       .setName("User difficulty")
@@ -43,24 +108,6 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Highlight color")
-      .setDesc("Background color for difficult words.")
-      .addText((text) => {
-        text.inputEl.type = "color";
-        text.setValue(this.plugin.settings.highlightColor);
-        text.onChange((value) => {
-          if (!value.trim()) {
-            new Notice("Highlight color cannot be empty.");
-            return;
-          }
-
-          void this.plugin.updateSettings({
-            highlightColor: value
-          });
-        });
-      });
-
-    new Setting(containerEl)
       .setName("Dictionary source")
       .setDesc("Choose which dictionaries are active for analysis.")
       .addDropdown((dropdown) => {
@@ -71,18 +118,6 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         dropdown.onChange((value) => {
           void this.plugin.updateSettings({
             dictionarySource: value as DictionarySourceMode
-          });
-        });
-      });
-
-    new Setting(containerEl)
-      .setName("Hide known words")
-      .setDesc("Do not highlight favorite words marked as known.")
-      .addToggle((toggle) => {
-        toggle.setValue(this.plugin.settings.hideKnownWords);
-        toggle.onChange((value) => {
-          void this.plugin.updateSettings({
-            hideKnownWords: value
           });
         });
       });

@@ -8,6 +8,8 @@ import type { DictionaryEntry, FavoriteWord, LexiNoteSettings } from "../src/typ
 const settings: LexiNoteSettings = {
   userDifficulty: 4,
   highlightColor: "#ffd166",
+  highlightStyle: "background",
+  underlineStyle: "solid",
   dictionarySource: "built-in-only",
   hideKnownWords: true,
   fallbackApiEnabled: false,
