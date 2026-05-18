@@ -22,14 +22,22 @@ It works especially well for:
 ## Features
 
 - Real-time highlighting for difficult English words in Markdown notes.
+- Background or underline highlighting, including straight and wavy underline styles.
 - Hover cards with local meanings and dictionary metadata.
 - A current-document word list that summarizes the difficult words in the active note.
 - One-click saving to a personal Vocabulary Library.
-- Vocabulary Library search, sorting, known-word markers, and deletion.
+- Vocabulary Library search, sorting, known-word markers, deletion, and export.
 - Built-in CET4 / CET6 dictionaries derived from ECDICT.
-- Custom dictionary import from `JSON`, `CSV`, and `TXT` files.
-- Configurable user difficulty, highlight color, dictionary source, and known-word hiding.
+- Multiple custom dictionary imports from `JSON`, `CSV`, and `TXT` files.
+- A dictionary table for enabling, disabling, reordering, editing, and deleting imported dictionaries.
+- Configurable user difficulty from `1` to `30`, highlight color, and known-word hiding.
+- Vocabulary export as LexiNote JSON or Anki-compatible TSV.
+- English and Chinese UI text that follows the Obsidian app language.
 - Markdown-aware analysis that skips inline code, fenced code blocks, URLs, and wikilinks.
+
+## Requirements
+
+- Obsidian `1.8.7` or newer.
 
 ## Install From Obsidian Community Plugins
 
@@ -54,15 +62,19 @@ After enabling LexiNote, a book icon appears in the left ribbon. Click it to ope
 3. LexiNote highlights words that are above your configured difficulty.
 4. Hover a highlighted word to see its meaning.
 5. Click the LexiNote ribbon icon to review all difficult words found in the current note.
-6. Save useful words to `My Vocabulary`, then mark familiar words as known when you no longer need them highlighted.
+6. Save useful words to `My vocabulary`, then mark familiar words as known when you no longer need them highlighted.
 
 You can adjust LexiNote in `Settings -> Community plugins -> LexiNote`.
 
 ## Custom Dictionary Import
 
-LexiNote can import custom dictionaries from `JSON`, `CSV`, and `TXT` files. Imported entries are stored locally in your Obsidian plugin data. The import UI asks for a dictionary name and difficulty, and every imported word inherits those values.
+LexiNote can import multiple custom dictionaries from `JSON`, `CSV`, and `TXT` files. Imported entries are stored locally in your Obsidian plugin data. The import UI asks for a dictionary name and difficulty, and every imported word inherits those values.
 
 Custom dictionaries are language-flexible. LexiNote only needs the source word to be English, while `meaning` can be Chinese, Japanese, Korean, French, or any other target language you want to review. For example, the same English word can be imported as English -> Chinese or English -> Japanese by changing only the meaning text.
+
+Imported dictionaries appear in the dictionary table together with the built-in CET4 / CET6 dictionaries. Built-in dictionaries are read-only. Imported dictionaries can be enabled or disabled, reordered, renamed, assigned a new difficulty, or deleted.
+
+Dictionary names must be unique. If the same word appears in multiple enabled dictionaries, LexiNote keeps all matching entries and shows them in dictionary order. A word is highlighted when any matching entry has a difficulty higher than your user difficulty.
 
 ### JSON
 
@@ -102,7 +114,16 @@ resilient
 scrutiny
 ```
 
-TXT imports do not include local meanings, so hover cards and lists show `暂无本地释义`.
+TXT imports do not include local meanings, so hover cards and lists show `No local meaning.` in English UI or `暂无本地释义` in Chinese UI.
+
+## Vocabulary Export
+
+Open `My vocabulary` and use:
+
+- `Export JSON` to export a LexiNote JSON dictionary. This file can be imported again through the custom dictionary importer.
+- `Export Anki TSV` to export a simple UTF-8 tab-separated file with two columns: `word` and `meaning`.
+
+The Anki TSV export is intentionally minimal. It does not generate `.apkg` files, card templates, pronunciation, tags, or AnkiConnect sync.
 
 ## Development
 
@@ -110,7 +131,7 @@ TXT imports do not include local meanings, so hover cards and lists show `暂无
 
 - Node.js 18 or newer
 - npm
-- Obsidian Desktop
+- Obsidian Desktop 1.8.7 or newer
 - A local Obsidian vault for testing
 
 ### Commands
@@ -197,7 +218,7 @@ Expected behavior:
 - Inline code, fenced code, URLs, and wikilinks are excluded.
 - Hovering a highlighted word shows its meaning.
 - The LexiNote ribbon icon opens the current document word list.
-- The current document word list has a `My Vocabulary` button for opening Vocabulary Library.
+- The current document word list has a `My vocabulary` button for opening Vocabulary Library.
 
 ### Test Fixtures
 
@@ -207,6 +228,10 @@ Sample files for local custom dictionary import testing are available in:
 tests/fixtures/imports/custom-academic.json
 tests/fixtures/imports/custom-writing.csv
 tests/fixtures/imports/custom-txt-words.txt
+tests/test-dictionary/v2-test-novel.md
+tests/test-dictionary/v2-academic.json
+tests/test-dictionary/v2-sensory.csv
+tests/test-dictionary/v2-plain.txt
 ```
 
 TXT imports do not include local meanings, so they are useful for validating the no-local-meaning display.
