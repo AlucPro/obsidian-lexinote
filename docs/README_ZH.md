@@ -199,8 +199,6 @@ Visit https://example.com/peculiar and check [[robust link target]].
 - LexiNote ribbon 图标会打开当前文档词表。
 - 当前文档词表顶部有 `My Vocabulary` 按钮，用于打开 Vocabulary Library。
 
-完整手动验收清单见 [docs/4_LOCAL_TESTING.md](4_LOCAL_TESTING.md)。
-
 ### 测试 Fixture
 
 用于本地自定义词库导入测试的示例文件位于：

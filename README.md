@@ -199,8 +199,6 @@ Expected behavior:
 - The LexiNote ribbon icon opens the current document word list.
 - The current document word list has a `My Vocabulary` button for opening Vocabulary Library.
 
-For the full manual acceptance checklist, see [docs/4_LOCAL_TESTING.md](docs/4_LOCAL_TESTING.md).
-
 ### Test Fixtures
 
 Sample files for local custom dictionary import testing are available in:
