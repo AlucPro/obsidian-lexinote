@@ -2,22 +2,26 @@
 
 [English](../README.md) | [用户使用手册](https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LexiNote-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E) | [User Guide](https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LexiNote-User-Guide)
 
-在你已经写下的笔记里学习英语词汇。
+在 Obsidian 写作时学习词汇。
 
-LexiNote 是一款 Obsidian 插件。它会在你阅读或写作时高亮英文难词，hover 时展示快速释义，并允许你把有用的单词保存到轻量的个人词库中。它的目标是尽量贴近你的写作流：不需要打开另一个背词软件，也不需要打断当前思路，只是在你的 vault 里自然地完成一点点词汇积累。
+LexiNote 是一款 Obsidian 插件。它会自动高亮笔记中的英文难词，hover 时展示释义，并帮助你在不打断写作流程的情况下建立个人词汇列表。
+
+适合：
+
+- 使用 Obsidian 的英语学习者。
+- 阅读或写作英文笔记的人。
+- CET-4 / CET-6 学习者。
+- 希望把词汇学习融入 PKM 工作流的用户。
 
 ![LexiNote 演示](asset/demo.gif)
 
 ## 为什么使用 LexiNote
 
-如果你经常在 Obsidian 里写英文日记、阅读笔记、文章草稿或博客，不熟悉的词往往正好出现在你的思路展开处。LexiNote 可以帮你发现这些词、快速理解它们，并把值得复习的词留下来。
+我经常在 Obsidian 里写和读英文笔记，但传统背词应用总是和真实的阅读、写作语境分离。
 
-它尤其适合：
+LexiNote 基于一个很简单的想法：
 
-- 把 Obsidian 当作英文阅读或写作工作区的英语学习者。
-- 希望在当前笔记里获得词汇帮助、但不想频繁切换上下文的写作者。
-- 需要 CET4 / CET6 难度提示和自定义词库的学习者。
-- 多语言复习场景，例如「英文 -> 中文」或「英文 -> 日语」。
+词汇学习应该发生在单词自然出现的地方。
 
 ## 功能
 

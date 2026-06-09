@@ -2,22 +2,26 @@
 
 [中文 README](docs/README_ZH.md) | [用户使用手册](https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LexiNote-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E) | [User Guide](https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LexiNote-User-Guide)
 
-Learn English vocabulary in the notes you already write.
+Learn vocabulary while writing in Obsidian.
 
-LexiNote is an Obsidian plugin that highlights difficult English words while you read or write, shows quick meanings on hover, and lets you save useful words into a lightweight vocabulary library. It is designed to stay close to your writing flow: no separate study app, no context switch, just small vocabulary moments inside your vault.
+LexiNote is an Obsidian plugin that automatically highlights difficult English words in your notes, shows meanings on hover, and helps you build a personal vocabulary list without interrupting your writing flow.
+
+Best for:
+
+- English learners using Obsidian
+- People who read or write English notes
+- CET-4 / CET-6 learners
+- Users who want vocabulary learning inside their PKM workflow
 
 ![LexiNote Demo](docs/asset/demo.gif)
 
 ## Why LexiNote
 
-If you write journals, reading notes, essays, or blog drafts in English, unfamiliar words often appear right where your ideas are forming. LexiNote helps you notice those words, understand them quickly, and keep the useful ones for later review.
+I often write and read English notes in Obsidian, but traditional vocabulary apps are separated from my real reading and writing context.
 
-It works especially well for:
+LexiNote was built for a simple idea:
 
-- English learners who use Obsidian as a reading or writing workspace.
-- Writers who want vocabulary help without leaving the current note.
-- Learners who want CET4 / CET6 style difficulty hints and custom dictionaries.
-- Multilingual review workflows, such as English -> Chinese or English -> Japanese.
+Vocabulary learning should happen where words naturally appear.
 
 ## Features
 
