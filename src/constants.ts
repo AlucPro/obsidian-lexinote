@@ -12,6 +12,8 @@ export const DEFAULT_SETTINGS: LexiNoteSettings = {
   enabledDictionaryIds: [...BUILT_IN_DICTIONARY_IDS],
   dictionaryOrder: [...BUILT_IN_DICTIONARY_IDS],
   hideKnownWords: true,
+  hoverAutoPronunciationEnabled: false,
+  dictionaryPathRules: [],
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
   fallbackApiKey: "",

@@ -10,6 +10,8 @@ const baseSettings: LexiNoteSettings = {
   enabledDictionaryIds: ["built-in:CET4", "built-in:CET6"],
   dictionaryOrder: ["built-in:CET4", "built-in:CET6"],
   hideKnownWords: true,
+  hoverAutoPronunciationEnabled: false,
+  dictionaryPathRules: [],
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
   fallbackApiKey: ""

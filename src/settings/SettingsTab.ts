@@ -2,7 +2,7 @@ import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import type LexiNotePlugin from "../main";
 import type { ImportOptions } from "../dictionary/DictionaryImporter";
-import type { HighlightStyle, UnderlineStyle } from "../types";
+import type { DictionaryPathRule, HighlightStyle, UnderlineStyle } from "../types";
 import { t } from "../i18n";
 
 type ImportFormat = ImportOptions["format"];
@@ -118,6 +118,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
     this.renderImportSection(containerEl);
     this.renderRepositorySection(containerEl);
+    this.renderAdvancedSection(containerEl);
   }
 
   private renderDictionaryTable(containerEl: HTMLElement): void {
@@ -347,6 +348,104 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
           activeWindow.open("#", "_blank", "noopener");
         });
       });
+  }
+
+  private renderAdvancedSection(containerEl: HTMLElement): void {
+    new Setting(containerEl).setName(t("settingsAdvanced")).setHeading();
+
+    new Setting(containerEl)
+      .setName(t("settingsHoverAutoPronunciation"))
+      .setDesc(t("settingsHoverAutoPronunciationDesc"))
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.settings.hoverAutoPronunciationEnabled);
+        toggle.onChange((value) => {
+          void this.plugin.updateSettings({
+            hoverAutoPronunciationEnabled: value
+          });
+        });
+      });
+
+    this.renderDictionaryPathRules(containerEl);
+  }
+
+  private renderDictionaryPathRules(containerEl: HTMLElement): void {
+    new Setting(containerEl)
+      .setName(t("settingsDictionaryPathRules"))
+      .setDesc(t("settingsDictionaryPathRulesDesc"));
+
+    for (const rule of this.plugin.settings.dictionaryPathRules) {
+      new Setting(containerEl)
+        .addDropdown((dropdown) => {
+          dropdown.addOption("enabled", t("settingsDictionaryPathRuleEnabled"));
+          dropdown.addOption("disabled", t("settingsDictionaryPathRuleDisabled"));
+          dropdown.setValue(rule.mode);
+          dropdown.onChange((value) => {
+            this.updateDictionaryPathRule(rule.id, {
+              mode: value as DictionaryPathRule["mode"]
+            });
+          });
+        })
+        .addText((text) => {
+          text.setPlaceholder(t("settingsDictionaryPathRulePathPlaceholder"));
+          text.setValue(rule.path);
+          text.onChange((value) => {
+            this.updateDictionaryPathRule(rule.id, {
+              path: value
+            });
+          });
+        })
+        .addButton((button) => {
+          button.setButtonText(t("actionDelete"));
+          button.onClick(() => {
+            void this.plugin
+              .updateSettings({
+                dictionaryPathRules:
+                  this.plugin.settings.dictionaryPathRules.filter(
+                    (item) => item.id !== rule.id
+                  )
+              })
+              .then(() => this.display());
+          });
+        });
+    }
+
+    new Setting(containerEl).addButton((button) => {
+      button.setButtonText(t("settingsAddDictionaryPathRule"));
+      button.onClick(() => {
+        void this.plugin
+          .updateSettings({
+            dictionaryPathRules: [
+              ...this.plugin.settings.dictionaryPathRules,
+              {
+                id: this.createDictionaryPathRuleId(),
+                mode: "enabled",
+                path: ""
+              }
+            ]
+          })
+          .then(() => this.display());
+      });
+    });
+  }
+
+  private updateDictionaryPathRule(
+    ruleId: string,
+    updates: Partial<DictionaryPathRule>
+  ): void {
+    void this.plugin.updateSettings({
+      dictionaryPathRules: this.plugin.settings.dictionaryPathRules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              ...updates
+            }
+          : rule
+      )
+    });
+  }
+
+  private createDictionaryPathRuleId(): string {
+    return `path-rule:${Date.now()}:${Math.random().toString(36).slice(2)}`;
   }
 
   private async importSelectedDictionary(): Promise<void> {

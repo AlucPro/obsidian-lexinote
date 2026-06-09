@@ -186,6 +186,10 @@ export class HoverProvider {
     activeDocument.body.appendChild(card);
     this.cardEl = card;
     this.positionCard(anchorEl);
+
+    if (this.plugin.settings.hoverAutoPronunciationEnabled) {
+      this.plugin.pronunciationService.speakWord(match.occurrence.word);
+    }
   }
 
   private createFallbackButton(

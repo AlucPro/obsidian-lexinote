@@ -11,6 +11,14 @@ export type HighlightStyle = "background" | "underline";
 
 export type UnderlineStyle = "solid" | "wavy";
 
+export type DictionaryPathRuleMode = "enabled" | "disabled";
+
+export interface DictionaryPathRule {
+  id: string;
+  mode: DictionaryPathRuleMode;
+  path: string;
+}
+
 export interface DictionaryEntry {
   word: string;
   normalizedWord: string;
@@ -72,6 +80,8 @@ export interface LexiNoteSettings {
   enabledDictionaryIds: string[];
   dictionaryOrder: string[];
   hideKnownWords: boolean;
+  hoverAutoPronunciationEnabled: boolean;
+  dictionaryPathRules: DictionaryPathRule[];
   fallbackApiEnabled: boolean;
   fallbackApiEndpoint?: string;
   fallbackApiKey?: string;

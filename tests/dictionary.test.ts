@@ -15,6 +15,8 @@ const baseSettings: LexiNoteSettings = {
   enabledDictionaryIds: ["built-in:Built-in"],
   dictionaryOrder: ["built-in:Built-in"],
   hideKnownWords: true,
+  hoverAutoPronunciationEnabled: false,
+  dictionaryPathRules: [],
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
   fallbackApiKey: ""

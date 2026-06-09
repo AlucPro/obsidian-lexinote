@@ -14,6 +14,7 @@ import { HoverProvider } from "./editor/HoverProvider";
 import { FallbackDefinitionClient } from "./fallback/FallbackDefinitionClient";
 import { t } from "./i18n";
 import { LEXINOTE_ICON_ID } from "./icons";
+import { PronunciationService } from "./pronunciation/PronunciationService";
 import { LexiNoteSettingsTab } from "./settings/SettingsTab";
 import { AnalysisStore } from "./stores/AnalysisStore";
 import { VocabularyStore } from "./stores/VocabularyStore";
@@ -24,11 +25,16 @@ import {
 import { SidebarView } from "./views/SidebarView";
 import { VocabularyLibraryView } from "./views/VocabularyLibraryView";
 import { ActiveMarkdownFileResolver } from "./workspace/ActiveMarkdownFileResolver";
+import {
+  isDictionaryEnabledForPath,
+  normalizeDictionaryRulePath
+} from "./workspace/DictionaryPathRuleMatcher";
 import { SidebarViewBootstrap } from "./workspace/SidebarViewBootstrap";
 import cet4Dictionary from "../resources/dictionaries/cet4.json";
 import cet6Dictionary from "../resources/dictionaries/cet6.json";
 import type {
   CustomDictionarySnapshot,
+  DictionaryPathRule,
   DictionaryEntry,
   FavoriteWord,
   ImportResult,
@@ -52,6 +58,7 @@ export default class LexiNotePlugin extends Plugin {
   highlighter?: EditorHighlighter;
   hoverProvider?: HoverProvider;
   fallbackClient: FallbackDefinitionClient = new FallbackDefinitionClient();
+  pronunciationService: PronunciationService = new PronunciationService();
   activeMarkdownFileResolver = new ActiveMarkdownFileResolver<TFile>();
   private reanalyzeTimer?: number;
   private pendingEditorAnalysis?:
@@ -83,6 +90,7 @@ export default class LexiNotePlugin extends Plugin {
     this.fallbackClient = new FallbackDefinitionClient();
     this.highlighter = new EditorHighlighter(this.app);
     this.hoverProvider = new HoverProvider(this);
+    this.pronunciationService = new PronunciationService();
 
     this.addRibbonIcon(LEXINOTE_ICON_ID, t("commandOpenCurrentDocumentWordList"), () => {
       void this.activateSidebarView();
@@ -145,6 +153,8 @@ export default class LexiNotePlugin extends Plugin {
     if (this.reanalyzeTimer) {
       activeWindow.clearTimeout(this.reanalyzeTimer);
     }
+
+    this.pronunciationService.cancel();
   }
 
   async loadPluginData(): Promise<void> {
@@ -172,6 +182,8 @@ export default class LexiNotePlugin extends Plugin {
   }
 
   async updateSettings(settings: Partial<LexiNoteSettings>): Promise<void> {
+    const wasHoverAutoPronunciationEnabled =
+      this.settings.hoverAutoPronunciationEnabled;
     this.settings = {
       ...this.settings,
       ...settings
@@ -217,6 +229,22 @@ export default class LexiNotePlugin extends Plugin {
       this.settings.underlineStyle !== "wavy"
     ) {
       this.settings.underlineStyle = DEFAULT_SETTINGS.underlineStyle;
+    }
+
+    if (typeof this.settings.hoverAutoPronunciationEnabled !== "boolean") {
+      this.settings.hoverAutoPronunciationEnabled =
+        DEFAULT_SETTINGS.hoverAutoPronunciationEnabled;
+    }
+
+    this.settings.dictionaryPathRules = this.hydrateDictionaryPathRules(
+      this.settings.dictionaryPathRules
+    );
+
+    if (
+      wasHoverAutoPronunciationEnabled &&
+      !this.settings.hoverAutoPronunciationEnabled
+    ) {
+      this.pronunciationService.cancel();
     }
 
     await this.savePluginData();
@@ -386,6 +414,11 @@ export default class LexiNotePlugin extends Plugin {
       return;
     }
 
+    if (!this.isDictionaryEnabledForFile(activeFile.path)) {
+      this.setEmptyAnalysisResult(activeFile.path);
+      return;
+    }
+
     const text = await this.app.vault.read(activeFile);
     const result = this.analyzer.analyze({
       filePath: activeFile.path,
@@ -404,6 +437,11 @@ export default class LexiNotePlugin extends Plugin {
   }
 
   reanalyzeEditorContent(filePath: string, text: string): void {
+    if (!this.isDictionaryEnabledForFile(filePath)) {
+      this.setEmptyAnalysisResult(filePath);
+      return;
+    }
+
     const result = this.analyzer.analyze({
       filePath,
       text,
@@ -535,6 +573,15 @@ export default class LexiNotePlugin extends Plugin {
       hydratedSettings.underlineStyle = DEFAULT_SETTINGS.underlineStyle;
     }
 
+    if (typeof hydratedSettings.hoverAutoPronunciationEnabled !== "boolean") {
+      hydratedSettings.hoverAutoPronunciationEnabled =
+        DEFAULT_SETTINGS.hoverAutoPronunciationEnabled;
+    }
+
+    hydratedSettings.dictionaryPathRules = this.hydrateDictionaryPathRules(
+      hydratedSettings.dictionaryPathRules
+    );
+
     hydratedSettings.enabledDictionaryIds = this.hydrateEnabledDictionaryIds(
       hydratedSettings.enabledDictionaryIds,
       customDictionarySnapshots
@@ -661,6 +708,38 @@ export default class LexiNotePlugin extends Plugin {
     return allIds;
   }
 
+  private hydrateDictionaryPathRules(value: unknown): DictionaryPathRule[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.flatMap((item, index) => {
+      if (!item || typeof item !== "object") {
+        return [];
+      }
+
+      const candidate = item as Partial<DictionaryPathRule>;
+
+      if (candidate.mode !== "enabled" && candidate.mode !== "disabled") {
+        return [];
+      }
+
+      const rawPath = typeof candidate.path === "string" ? candidate.path : "";
+      const id =
+        typeof candidate.id === "string" && candidate.id.trim()
+          ? candidate.id
+          : this.createDictionaryPathRuleId(index);
+
+      return [
+        {
+          id,
+          mode: candidate.mode,
+          path: normalizeDictionaryRulePath(rawPath)
+        }
+      ];
+    });
+  }
+
   private normalizeUserDifficulty(value: unknown): number {
     const numericValue = Number(value);
 
@@ -693,6 +772,25 @@ export default class LexiNotePlugin extends Plugin {
     const suffix = normalizedName || `dictionary-${fallbackIndex + 1}`;
 
     return `custom:${snapshot.importedAt}:${suffix}`;
+  }
+
+  private createDictionaryPathRuleId(index = Date.now()): string {
+    return `path-rule:${Date.now()}:${index}:${Math.random()
+      .toString(36)
+      .slice(2)}`;
+  }
+
+  private isDictionaryEnabledForFile(filePath: string): boolean {
+    return isDictionaryEnabledForPath(filePath, this.settings.dictionaryPathRules);
+  }
+
+  private setEmptyAnalysisResult(filePath: string): void {
+    this.analysisStore.setCurrent({
+      filePath,
+      updatedAt: Date.now(),
+      difficultWords: []
+    });
+    this.highlighter?.update(undefined, this.settings);
   }
 
   private isDuplicateDictionaryName(

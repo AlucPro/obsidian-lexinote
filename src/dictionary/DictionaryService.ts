@@ -32,6 +32,8 @@ export class DictionaryService {
       highlightStyle: "background",
       underlineStyle: "solid",
       hideKnownWords: true,
+      hoverAutoPronunciationEnabled: false,
+      dictionaryPathRules: [],
       fallbackApiEnabled: false
     });
   }

@@ -13,6 +13,8 @@ const settings: LexiNoteSettings = {
   enabledDictionaryIds: ["built-in:Test"],
   dictionaryOrder: ["built-in:Test"],
   hideKnownWords: true,
+  hoverAutoPronunciationEnabled: false,
+  dictionaryPathRules: [],
   fallbackApiEnabled: false,
   fallbackApiEndpoint: "",
   fallbackApiKey: ""

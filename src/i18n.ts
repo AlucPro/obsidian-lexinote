@@ -50,6 +50,7 @@ const enMessages = {
   noticeUnableOpenSidebar: "Unable to open sidebar.",
   noticeUserDifficultyInvalid: "User difficulty must be an integer from 1 to 30.",
   settingsCustomDictionaryImport: "Custom dictionary import",
+  settingsAdvanced: "Advanced",
   settingsDefaultDictionaryName: "Custom dictionary",
   settingsDictionaryDifficulty: "Dictionary difficulty",
   settingsDictionaryDifficultyDesc: "Imported words inherit this difficulty from 1 to 30.",
@@ -60,6 +61,14 @@ const enMessages = {
   settingsDictionaryRepository: "Dictionary repository",
   settingsDictionaryRepositoryDesc:
     "Download dictionary files from the third-party repository, then import them with the dictionary importer above.",
+  settingsDictionaryPathRules: "Dictionary path rules",
+  settingsDictionaryPathRulesDesc:
+    "Control where dictionary analysis is enabled by folder or file. Leave empty to enable all notes.",
+  settingsDictionaryPathRuleEnabled: "Enabled path",
+  settingsDictionaryPathRuleDisabled: "Disabled path",
+  settingsDictionaryPathRulePathPlaceholder:
+    "Example: English/Reading or English/reading.md",
+  settingsAddDictionaryPathRule: "Add path rule",
   settingsDifficultyAndDictionaries: "Difficulty and dictionaries",
   settingsHideKnownWords: "Hide known words",
   settingsHideKnownWordsDesc: "Do not highlight favorite words marked as known.",
@@ -69,6 +78,9 @@ const enMessages = {
   settingsHighlightStyleBackground: "Background",
   settingsHighlightStyleDesc: "Choose how difficult words are marked in the editor.",
   settingsHighlightStyleUnderline: "Underline",
+  settingsHoverAutoPronunciation: "Auto-pronounce words on hover",
+  settingsHoverAutoPronunciationDesc:
+    "Automatically pronounce highlighted words when their hover card appears.",
   settingsImportDictionary: "Import dictionary",
   settingsImportDictionaryDesc: "Import adds a new dictionary to the dictionary table.",
   settingsImportFailed: "Import failed. {message}",
@@ -152,6 +164,7 @@ const zhMessages: Partial<Record<MessageKey, string>> = {
   noticeUnableOpenSidebar: "无法打开侧边栏。",
   noticeUserDifficultyInvalid: "用户水平必须是 1 到 30 的整数。",
   settingsCustomDictionaryImport: "自定义词典导入",
+  settingsAdvanced: "高级",
   settingsDefaultDictionaryName: "自定义词典",
   settingsDictionaryDifficulty: "词典难度",
   settingsDictionaryDifficultyDesc: "导入的单词会继承这个 1 到 30 的难度。",
@@ -161,6 +174,14 @@ const zhMessages: Partial<Record<MessageKey, string>> = {
   settingsDictionaryNameDesc: "显示在单词元信息中。",
   settingsDictionaryRepository: "词典仓库",
   settingsDictionaryRepositoryDesc: "从三方仓库下载词典文件后，可通过上方导入器导入。",
+  settingsDictionaryPathRules: "词典生效/失效路径",
+  settingsDictionaryPathRulesDesc:
+    "按目录或文件控制词典分析是否生效。留空时全部笔记生效；存在生效路径时，只有命中的路径默认生效；失效路径可用于排除。",
+  settingsDictionaryPathRuleEnabled: "生效路径",
+  settingsDictionaryPathRuleDisabled: "失效路径",
+  settingsDictionaryPathRulePathPlaceholder:
+    "例如：English/Reading 或 English/reading.md",
+  settingsAddDictionaryPathRule: "添加路径规则",
   settingsDifficultyAndDictionaries: "难度与词典",
   settingsHideKnownWords: "隐藏已熟悉单词",
   settingsHideKnownWordsDesc: "不再高亮生词本中标记为熟悉的单词。",
@@ -170,6 +191,9 @@ const zhMessages: Partial<Record<MessageKey, string>> = {
   settingsHighlightStyleBackground: "背景色",
   settingsHighlightStyleDesc: "选择编辑器中难词的标记方式。",
   settingsHighlightStyleUnderline: "下划线",
+  settingsHoverAutoPronunciation: "hover 单词自动朗读发音",
+  settingsHoverAutoPronunciationDesc:
+    "开启后，鼠标悬停到高亮单词并显示释义卡片时，会自动朗读该单词。",
   settingsImportDictionary: "导入词典",
   settingsImportDictionaryDesc: "导入后会在词典表中新增一本词典。",
   settingsImportFailed: "导入失败。{message}",

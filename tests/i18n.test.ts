@@ -33,4 +33,15 @@ describe("i18n", () => {
       "LexiNote 找到 3 个难词。"
     );
   });
+
+  it("translates advanced hover pronunciation settings", () => {
+    expect(translateMessage("settingsAdvanced", "en")).toBe("Advanced");
+    expect(translateMessage("settingsAdvanced", "zh-CN")).toBe("高级");
+    expect(translateMessage("settingsHoverAutoPronunciation", "zh-CN")).toBe(
+      "hover 单词自动朗读发音"
+    );
+    expect(translateMessage("settingsDictionaryPathRules", "zh-CN")).toBe(
+      "词典生效/失效路径"
+    );
+  });
 });

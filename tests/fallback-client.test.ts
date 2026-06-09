@@ -11,6 +11,8 @@ const settings: LexiNoteSettings = {
   enabledDictionaryIds: ["built-in:CET4", "built-in:CET6"],
   dictionaryOrder: ["built-in:CET4", "built-in:CET6"],
   hideKnownWords: true,
+  hoverAutoPronunciationEnabled: false,
+  dictionaryPathRules: [],
   fallbackApiEnabled: true,
   fallbackApiEndpoint: "http://127.0.0.1:8787/lookup",
   fallbackApiKey: ""
