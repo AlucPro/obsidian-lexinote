@@ -151,3 +151,5 @@ sql-wasm.wasm
 .DS_Store
 
 claude.md
+
+CHANGELOG.md
