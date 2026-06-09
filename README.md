@@ -252,6 +252,14 @@ Example: release version `0.1.5` to GitHub.
 gh release create 0.1.5 main.js manifest.json styles.css -t "0.1.5"
 ```
 
+## Updates
+
+### V3.2 (1.3.2)
+
+- Hover auto-pronunciation: automatically reads aloud words on hover.
+- Dictionary path rules: enable or disable dictionaries for specific vault folders.
+- Anki deck import: import `.apkg` Anki decks as custom dictionary sources.
+
 ## License
 
 MIT

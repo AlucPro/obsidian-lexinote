@@ -3,20 +3,33 @@ import type {
   DictionaryEntry,
   ImportResult
 } from "../types";
+import { parseAnkiText, type ParsedDictionaryRow } from "./parsers/AnkiTextParser";
+import type { ParsedAnkiDeck } from "./parsers/AnkiPackageParser";
+
+export type ImportFormat = "json" | "csv" | "txt" | "anki-text" | "apkg";
+
+export interface AnkiFieldMapping {
+  noteTypeId?: string;
+  wordField: string;
+  meaningFields: string[];
+}
 
 export interface ImportOptions {
   fileName: string;
-  content: string;
-  format: "json" | "csv" | "txt";
+  content?: string;
+  binaryContent?: ArrayBuffer;
+  format: ImportFormat;
   dictionaryName: string;
   difficulty: DictionaryDifficulty;
   importedAt: number;
+  ankiFieldMapping?: AnkiFieldMapping;
 }
 
 interface ParsedRow {
   word?: unknown;
   meaning?: unknown;
   line?: number;
+  sourceMeta?: Record<string, string | number>;
 }
 
 export class DictionaryImporter {
@@ -118,15 +131,104 @@ export class DictionaryImporter {
     options: ImportOptions,
     errors: ImportResult["errors"]
   ): ParsedRow[] | undefined {
+    const content = options.content ?? "";
+
     if (options.format === "json") {
-      return this.parseJsonRows(options.content, errors);
+      return this.parseJsonRows(content, errors);
     }
 
     if (options.format === "csv") {
-      return this.parseCsvRows(options.content);
+      return this.parseCsvRows(content);
     }
 
-    return this.parseTxtRows(options.content);
+    if (options.format === "anki-text") {
+      return parseAnkiText(content);
+    }
+
+    return this.parseTxtRows(content);
+  }
+
+  importFromAnkiDeck(
+    parsedDeck: ParsedAnkiDeck,
+    options: ImportOptions
+  ): ImportResult {
+    const dictionaryName = options.dictionaryName.trim();
+    const errors: ImportResult["errors"] = [];
+
+    if (!dictionaryName) {
+      return this.emptyResult([
+        { message: "Dictionary name is required." }
+      ]);
+    }
+
+    if (!Number.isFinite(options.difficulty) || options.difficulty <= 0) {
+      return this.emptyResult([
+        { message: "Dictionary difficulty must be a finite positive number." }
+      ]);
+    }
+
+    const entriesByWord = new Map<string, DictionaryEntry>();
+    let successCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
+
+    for (const row of parsedDeck.rows) {
+      const word = this.stringifyImportValue(row.word).trim();
+
+      if (!word) {
+        skippedCount += 1;
+        continue;
+      }
+
+      if (!/[A-Za-z]/.test(word)) {
+        failedCount += 1;
+        errors.push({
+          line: row.line,
+          message: `Invalid word: ${word}`
+        });
+        continue;
+      }
+
+      const normalizedWord = word.toLowerCase();
+      const meaning =
+        typeof row.meaning === "string" && row.meaning.trim()
+          ? row.meaning.trim()
+          : undefined;
+
+      entriesByWord.set(normalizedWord, {
+        word,
+        normalizedWord,
+        dictionaryName,
+        difficulty: options.difficulty,
+        meaning,
+        source: "custom"
+      });
+      successCount += 1;
+    }
+
+    const entries = Array.from(entriesByWord.values());
+
+    return {
+      snapshot: {
+        id: `custom-${options.importedAt}`,
+        entries,
+        importedAt: options.importedAt,
+        sourceFileName: options.fileName,
+        dictionaryName,
+        difficulty: options.difficulty,
+        enabled: true,
+        order: 0,
+        stats: {
+          successCount,
+          failedCount,
+          skippedCount
+        }
+      },
+      successCount,
+      failedCount,
+      skippedCount,
+      errors
+    };
   }
 
   private parseJsonRows(

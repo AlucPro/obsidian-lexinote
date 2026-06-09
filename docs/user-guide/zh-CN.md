@@ -239,6 +239,14 @@ LexiNote 采用本地优先设计：
 
 [https://dg.aluc.me/](https://dg.aluc.me/)
 
+## 更新日志
+
+### V3.2 (1.3.2)
+
+- 支持 hover 单词自动朗读发音。
+- 支持指定目录下文件，词典功能的生效/失效控制。
+- 支持导入 Anki decks 作为词典源。
+
 ## 仓库链接
 
 GitHub 仓库：

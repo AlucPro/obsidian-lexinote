@@ -239,6 +239,14 @@ If you like LexiNote, or if you are looking for someone who can turn developer t
 
 [https://dg.aluc.me/](https://dg.aluc.me/)
 
+## Updates
+
+### V3.2 (1.3.2)
+
+- Hover auto-pronunciation: automatically reads aloud words on hover.
+- Dictionary path rules: enable or disable dictionaries for specific vault folders.
+- Anki deck import: import `.apkg` Anki decks as custom dictionary sources.
+
 ## Repository
 
 GitHub repository:

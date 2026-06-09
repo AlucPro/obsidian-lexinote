@@ -1,11 +1,13 @@
-import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
-import type LexiNotePlugin from "../main";
-import type { ImportOptions } from "../dictionary/DictionaryImporter";
-import type { DictionaryPathRule, HighlightStyle, UnderlineStyle } from "../types";
+import { Notice, PluginSettingTab, Setting } from "obsidian";
+import type { ImportFormat } from "../dictionary/DictionaryImporter";
 import { t } from "../i18n";
-
-type ImportFormat = ImportOptions["format"];
+import type LexiNotePlugin from "../main";
+import type {
+  DictionaryPathRule,
+  HighlightStyle,
+  UnderlineStyle,
+} from "../types";
 
 export class LexiNoteSettingsTab extends PluginSettingTab {
   private importFile?: File;
@@ -13,7 +15,10 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
   private importDifficulty = 8;
   private importStatusEl?: HTMLElement;
 
-  constructor(app: App, private readonly plugin: LexiNotePlugin) {
+  constructor(
+    app: App,
+    private readonly plugin: LexiNotePlugin,
+  ) {
     super(app, plugin);
   }
 
@@ -32,7 +37,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         dropdown.setValue(this.plugin.settings.highlightStyle);
         dropdown.onChange((value) => {
           void this.plugin.updateSettings({
-            highlightStyle: value as HighlightStyle
+            highlightStyle: value as HighlightStyle,
           });
           this.display();
         });
@@ -51,7 +56,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
           }
 
           void this.plugin.updateSettings({
-            highlightColor: value
+            highlightColor: value,
           });
         });
       });
@@ -66,7 +71,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
           dropdown.setValue(this.plugin.settings.underlineStyle);
           dropdown.onChange((value) => {
             void this.plugin.updateSettings({
-              underlineStyle: value as UnderlineStyle
+              underlineStyle: value as UnderlineStyle,
             });
           });
         });
@@ -79,12 +84,14 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         toggle.setValue(this.plugin.settings.hideKnownWords);
         toggle.onChange((value) => {
           void this.plugin.updateSettings({
-            hideKnownWords: value
+            hideKnownWords: value,
           });
         });
       });
 
-    new Setting(containerEl).setName(t("settingsDifficultyAndDictionaries")).setHeading();
+    new Setting(containerEl)
+      .setName(t("settingsDifficultyAndDictionaries"))
+      .setHeading();
 
     new Setting(containerEl)
       .setName(t("settingsUserDifficulty"))
@@ -99,17 +106,13 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         text.onChange((value) => {
           const nextValue = Number(value);
 
-          if (
-            !Number.isInteger(nextValue) ||
-            nextValue < 1 ||
-            nextValue > 30
-          ) {
+          if (!Number.isInteger(nextValue) || nextValue < 1 || nextValue > 30) {
             new Notice(t("noticeUserDifficultyInvalid"));
             return;
           }
 
           void this.plugin.updateSettings({
-            userDifficulty: nextValue
+            userDifficulty: nextValue,
           });
         });
       });
@@ -139,7 +142,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       t("settingsTableDifficulty"),
       t("settingsTableWords"),
       t("settingsTableOrder"),
-      t("settingsTableActions")
+      t("settingsTableActions"),
     ]) {
       const th = activeDocument.createElement("th");
       th.textContent = label;
@@ -172,13 +175,15 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         nameInput.type = "text";
         nameInput.value = row.name;
         nameInput.addEventListener("change", () => {
-          void this.plugin.updateCustomDictionary(row.id, {
-            dictionaryName: nameInput.value
-          }).then((updated) => {
-            if (updated) {
-              this.display();
-            }
-          });
+          void this.plugin
+            .updateCustomDictionary(row.id, {
+              dictionaryName: nameInput.value,
+            })
+            .then((updated) => {
+              if (updated) {
+                this.display();
+              }
+            });
         });
         nameCell.appendChild(nameInput);
       }
@@ -213,7 +218,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
           }
 
           void this.plugin.updateCustomDictionary(row.id, {
-            difficulty: nextDifficulty
+            difficulty: nextDifficulty,
           });
         });
         difficultyCell.appendChild(difficultyInput);
@@ -247,7 +252,9 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         deleteButton.type = "button";
         deleteButton.textContent = t("actionDelete");
         deleteButton.addEventListener("click", () => {
-          void this.plugin.removeCustomDictionary(row.id).then(() => this.display());
+          void this.plugin
+            .removeCustomDictionary(row.id)
+            .then(() => this.display());
         });
         actionsCell.appendChild(deleteButton);
       }
@@ -259,7 +266,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         difficultyCell,
         countCell,
         orderCell,
-        actionsCell
+        actionsCell,
       );
       tbody.appendChild(tr);
     }
@@ -270,7 +277,9 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
   }
 
   private renderImportSection(containerEl: HTMLElement): void {
-    new Setting(containerEl).setName(t("settingsCustomDictionaryImport")).setHeading();
+    new Setting(containerEl)
+      .setName(t("settingsCustomDictionaryImport"))
+      .setHeading();
 
     new Setting(containerEl)
       .setName(t("settingsDictionaryFile"))
@@ -278,11 +287,13 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       .then((setting) => {
         const fileInput = activeDocument.createElement("input");
         fileInput.type = "file";
-        fileInput.accept = ".json,.csv,.txt";
+        fileInput.accept = ".json,.csv,.txt,.tsv,.apkg";
         fileInput.addEventListener("change", () => {
           this.importFile = fileInput.files?.[0];
           this.setImportStatus(
-            this.importFile ? t("settingsSelectedFile", { fileName: this.importFile.name }) : ""
+            this.importFile
+              ? t("settingsSelectedFile", { fileName: this.importFile.name })
+              : "",
           );
         });
         setting.controlEl.appendChild(fileInput);
@@ -324,20 +335,22 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       });
 
     this.importStatusEl = containerEl.createEl("p", {
-      cls: "lexinote-import-status"
+      cls: "lexinote-import-status",
     });
 
     if (this.plugin.customDictionarySnapshots.length > 0) {
       this.setImportStatus(
         t("settingsImportedDictionaries", {
-          count: this.plugin.customDictionarySnapshots.length
-        })
+          count: this.plugin.customDictionarySnapshots.length,
+        }),
       );
     }
   }
 
   private renderRepositorySection(containerEl: HTMLElement): void {
-    new Setting(containerEl).setName(t("settingsThirdPartyDictionaryRepository")).setHeading();
+    new Setting(containerEl)
+      .setName(t("settingsThirdPartyDictionaryRepository"))
+      .setHeading();
 
     new Setting(containerEl)
       .setName(t("settingsDictionaryRepository"))
@@ -345,7 +358,11 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       .addButton((button) => {
         button.setButtonText(t("actionOpenRepository"));
         button.onClick(() => {
-          activeWindow.open("#", "_blank", "noopener");
+          activeWindow.open(
+            "https://dg.aluc.me/Projects/OBSIDIAN-LEXINOTE/LEXINOTE-DICTIONARIES",
+            "_blank",
+            "noopener",
+          );
         });
       });
   }
@@ -360,7 +377,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         toggle.setValue(this.plugin.settings.hoverAutoPronunciationEnabled);
         toggle.onChange((value) => {
           void this.plugin.updateSettings({
-            hoverAutoPronunciationEnabled: value
+            hoverAutoPronunciationEnabled: value,
           });
         });
       });
@@ -377,11 +394,14 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       new Setting(containerEl)
         .addDropdown((dropdown) => {
           dropdown.addOption("enabled", t("settingsDictionaryPathRuleEnabled"));
-          dropdown.addOption("disabled", t("settingsDictionaryPathRuleDisabled"));
+          dropdown.addOption(
+            "disabled",
+            t("settingsDictionaryPathRuleDisabled"),
+          );
           dropdown.setValue(rule.mode);
           dropdown.onChange((value) => {
             this.updateDictionaryPathRule(rule.id, {
-              mode: value as DictionaryPathRule["mode"]
+              mode: value as DictionaryPathRule["mode"],
             });
           });
         })
@@ -390,7 +410,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
           text.setValue(rule.path);
           text.onChange((value) => {
             this.updateDictionaryPathRule(rule.id, {
-              path: value
+              path: value,
             });
           });
         })
@@ -401,8 +421,8 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
               .updateSettings({
                 dictionaryPathRules:
                   this.plugin.settings.dictionaryPathRules.filter(
-                    (item) => item.id !== rule.id
-                  )
+                    (item) => item.id !== rule.id,
+                  ),
               })
               .then(() => this.display());
           });
@@ -419,9 +439,9 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
               {
                 id: this.createDictionaryPathRuleId(),
                 mode: "enabled",
-                path: ""
-              }
-            ]
+                path: "",
+              },
+            ],
           })
           .then(() => this.display());
       });
@@ -430,17 +450,18 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
 
   private updateDictionaryPathRule(
     ruleId: string,
-    updates: Partial<DictionaryPathRule>
+    updates: Partial<DictionaryPathRule>,
   ): void {
     void this.plugin.updateSettings({
-      dictionaryPathRules: this.plugin.settings.dictionaryPathRules.map((rule) =>
-        rule.id === ruleId
-          ? {
-              ...rule,
-              ...updates
-            }
-          : rule
-      )
+      dictionaryPathRules: this.plugin.settings.dictionaryPathRules.map(
+        (rule) =>
+          rule.id === ruleId
+            ? {
+                ...rule,
+                ...updates,
+              }
+            : rule,
+      ),
     });
   }
 
@@ -468,10 +489,48 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       return;
     }
 
-    const format = this.getImportFormat(this.importFile.name);
+    let format = this.getImportFormat(this.importFile.name);
 
     if (!format) {
       new Notice(t("noticeDictionaryFileInvalid"));
+      return;
+    }
+
+    if (format === "txt") {
+      const text = await this.importFile.text();
+      if (text.includes("\t")) {
+        format = "anki-text";
+      }
+    }
+
+    if (format === "apkg") {
+      const binaryContent = await this.importFile.arrayBuffer();
+      const result = await this.plugin.importApkgDictionary({
+        fileName: this.importFile.name,
+        binaryContent,
+        format,
+        dictionaryName: this.importDictionaryName,
+        difficulty: this.importDifficulty,
+        importedAt: Date.now(),
+      });
+
+      if (result.snapshot) {
+        this.setImportStatus(
+          t("settingsImportResult", {
+            successCount: result.successCount,
+            failedCount: result.failedCount,
+            skippedCount: result.skippedCount,
+          }),
+        );
+        this.importFile = undefined;
+        this.display();
+      } else {
+        this.setImportStatus(
+          t("settingsImportFailed", {
+            message: result.errors.map((error) => error.message).join(" "),
+          }),
+        );
+      }
       return;
     }
 
@@ -481,7 +540,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       format,
       dictionaryName: this.importDictionaryName,
       difficulty: this.importDifficulty,
-      importedAt: Date.now()
+      importedAt: Date.now(),
     });
 
     if (result.snapshot) {
@@ -489,16 +548,16 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
         t("settingsImportResult", {
           successCount: result.successCount,
           failedCount: result.failedCount,
-          skippedCount: result.skippedCount
-        })
+          skippedCount: result.skippedCount,
+        }),
       );
       this.importFile = undefined;
       this.display();
     } else {
       this.setImportStatus(
         t("settingsImportFailed", {
-          message: result.errors.map((error) => error.message).join(" ")
-        })
+          message: result.errors.map((error) => error.message).join(" "),
+        }),
       );
     }
   }
@@ -506,9 +565,11 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
   private getImportFormat(fileName: string): ImportFormat | undefined {
     const extension = fileName.split(".").pop()?.toLowerCase();
 
-    if (extension === "json" || extension === "csv" || extension === "txt") {
-      return extension;
-    }
+    if (extension === "json") return "json";
+    if (extension === "csv") return "csv";
+    if (extension === "tsv") return "anki-text";
+    if (extension === "apkg") return "apkg";
+    if (extension === "txt") return "txt";
 
     return undefined;
   }

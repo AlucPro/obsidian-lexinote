@@ -143,6 +143,11 @@ vite.config.ts.timestamp-*
 main.js
 main.js.map
 *.map
+# Obsidian runtime files (generated in vault)
+data.json
+.hotreload
+sql-wasm.wasm
 
 .DS_Store
 
+claude.md
