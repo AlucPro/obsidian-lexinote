@@ -151,9 +151,7 @@ export default class LexiNotePlugin extends Plugin {
 
   onunload(): void {
     if (this.reanalyzeTimer) {
-      // Obsidian's community review requires timer functions to use `window`.
-      // eslint-disable-next-line obsidianmd/prefer-active-doc
-      window.clearTimeout(this.reanalyzeTimer);
+      activeWindow.clearTimeout(this.reanalyzeTimer);
     }
 
     this.pronunciationService.cancel();
@@ -617,9 +615,7 @@ export default class LexiNotePlugin extends Plugin {
     link.click();
     link.remove();
 
-    // Obsidian's community review requires timer functions to use `window`.
-    // eslint-disable-next-line obsidianmd/prefer-active-doc
-    window.setTimeout(() => {
+    activeWindow.setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 1000);
   }
@@ -857,14 +853,10 @@ export default class LexiNotePlugin extends Plugin {
 
   private queueReanalyzeActiveDocument(reason: RefreshReason): void {
     if (this.reanalyzeTimer) {
-      // Obsidian's community review requires timer functions to use `window`.
-      // eslint-disable-next-line obsidianmd/prefer-active-doc
-      window.clearTimeout(this.reanalyzeTimer);
+      activeWindow.clearTimeout(this.reanalyzeTimer);
     }
 
-    // Obsidian's community review requires timer functions to use `window`.
-    // eslint-disable-next-line obsidianmd/prefer-active-doc
-    this.reanalyzeTimer = window.setTimeout(() => {
+    this.reanalyzeTimer = activeWindow.setTimeout(() => {
       void this.reanalyzeActiveDocument(reason);
     }, 300);
   }
@@ -888,14 +880,10 @@ export default class LexiNotePlugin extends Plugin {
     };
 
     if (this.reanalyzeTimer) {
-      // Obsidian's community review requires timer functions to use `window`.
-      // eslint-disable-next-line obsidianmd/prefer-active-doc
-      window.clearTimeout(this.reanalyzeTimer);
+      activeWindow.clearTimeout(this.reanalyzeTimer);
     }
 
-    // Obsidian's community review requires timer functions to use `window`.
-    // eslint-disable-next-line obsidianmd/prefer-active-doc
-    this.reanalyzeTimer = window.setTimeout(() => {
+    this.reanalyzeTimer = activeWindow.setTimeout(() => {
       const pendingAnalysis = this.pendingEditorAnalysis;
       this.pendingEditorAnalysis = undefined;
 
