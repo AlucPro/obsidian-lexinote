@@ -344,12 +344,6 @@ export default class LexiNotePlugin extends Plugin {
         wasmBinary
       });
 
-      if (parsedDeck.warnings.length > 0) {
-        for (const warning of parsedDeck.warnings) {
-          console.warn(`LexiNote APKG: ${warning}`);
-        }
-      }
-
       const result = this.dictionaryImporter.importFromAnkiDeck(parsedDeck, options);
 
       if (!result.snapshot) {

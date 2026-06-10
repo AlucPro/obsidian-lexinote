@@ -1,6 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from "builtin-modules";
+import { builtinModules } from "module";
 import fs from "fs";
 import path from "path";
 
@@ -53,7 +53,8 @@ const context = await esbuild.context({
     "@lezer/common",
     "@lezer/highlight",
     "@lezer/lr",
-    ...builtins
+    ...builtinModules,
+    ...builtinModules.map((moduleName) => `node:${moduleName}`)
   ],
   format: "cjs",
   target: "es2018",

@@ -23,6 +23,15 @@ export interface AnkiPackageParserOptions {
   wasmBinary: ArrayBuffer;
 }
 
+interface AnkiModel {
+  name: string;
+  flds: Array<{ name: string }>;
+}
+
+interface AnkiDeckConfig {
+  name: string;
+}
+
 const WORD_FIELD_CANDIDATES = [
   "word", "term", "front", "expression", "vocab", "vocabulary",
   "english", "英文", "单词", "词汇", "text", "phrase", "spelling",
@@ -37,6 +46,52 @@ const MEANING_FIELD_CANDIDATES = [
 
 function normalizeFieldName(name: string): string {
   return name.toLowerCase().replace(/[\s_-]+/g, "");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseModelMap(value: unknown): Record<string, AnkiModel> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const models: Record<string, AnkiModel> = {};
+  for (const [id, model] of Object.entries(value)) {
+    if (!isRecord(model) || typeof model.name !== "string" || !Array.isArray(model.flds)) {
+      return undefined;
+    }
+
+    const fields = model.flds;
+    if (!fields.every((field) => isRecord(field) && typeof field.name === "string")) {
+      return undefined;
+    }
+
+    models[id] = {
+      name: model.name,
+      flds: fields.map((field) => ({ name: (field as { name: string }).name }))
+    };
+  }
+
+  return models;
+}
+
+function parseDeckMap(value: unknown): Record<string, AnkiDeckConfig> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const decks: Record<string, AnkiDeckConfig> = {};
+  for (const [id, deck] of Object.entries(value)) {
+    if (!isRecord(deck) || typeof deck.name !== "string") {
+      return undefined;
+    }
+
+    decks[id] = { name: deck.name };
+  }
+
+  return decks;
 }
 
 function findSuggestedFields(fields: string[]): {
@@ -128,13 +183,6 @@ async function resolveDatabase(
   return undefined;
 }
 
-function toBuffer(data: Uint8Array): Uint8Array {
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(data);
-  }
-  return data;
-}
-
 export async function parseAnkiPackage(
   options: AnkiPackageParserOptions
 ): Promise<ParsedAnkiDeck> {
@@ -167,7 +215,7 @@ export async function parseAnkiPackage(
 
   // Initialize SQL.js with provided WASM binary
   const SQL = await initSqlJs.default({ wasmBinary });
-  const db = new SQL.Database(toBuffer(dbResult.data));
+  const db = new SQL.Database(dbResult.data);
 
   try {
     // Read collection config for models/note types
@@ -180,12 +228,20 @@ export async function parseAnkiPackage(
     const modelsJson = colRows[0].values[0][0] as string;
     const decksJson = colRows[0].values[0][1] as string;
 
-    let models: Record<string, { name: string; flds: Array<{ name: string }> }>;
-    let decks: Record<string, { name: string }>;
+    let models: Record<string, AnkiModel>;
+    let decks: Record<string, AnkiDeckConfig>;
 
     try {
-      models = JSON.parse(modelsJson);
-      decks = JSON.parse(decksJson);
+      const parsedModels = JSON.parse(modelsJson) as unknown;
+      const parsedDecks = JSON.parse(decksJson) as unknown;
+      const modelMap = parseModelMap(parsedModels);
+      const deckMap = parseDeckMap(parsedDecks);
+      if (!modelMap || !deckMap) {
+        warnings.push("Collection models or decks JSON has an unsupported shape.");
+        return { deckNames: [], noteTypes: [], rows: [], warnings };
+      }
+      models = modelMap;
+      decks = deckMap;
     } catch {
       warnings.push("Failed to parse collection models or decks JSON.");
       return { deckNames: [], noteTypes: [], rows: [], warnings };

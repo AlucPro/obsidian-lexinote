@@ -3,7 +3,7 @@ import type {
   DictionaryEntry,
   ImportResult
 } from "../types";
-import { parseAnkiText, type ParsedDictionaryRow } from "./parsers/AnkiTextParser";
+import { parseAnkiText } from "./parsers/AnkiTextParser";
 import type { ParsedAnkiDeck } from "./parsers/AnkiPackageParser";
 
 export type ImportFormat = "json" | "csv" | "txt" | "anki-text" | "apkg";
