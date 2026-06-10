@@ -45,7 +45,9 @@ export class VocabularyLibraryView extends ItemView {
     this.unsubscribe = undefined;
 
     if (this.searchTimer) {
-      activeWindow.clearTimeout(this.searchTimer);
+      // Obsidian's community review requires timer functions to use `window`.
+      // eslint-disable-next-line obsidianmd/prefer-active-doc
+      window.clearTimeout(this.searchTimer);
     }
 
     return Promise.resolve();
@@ -119,10 +121,14 @@ export class VocabularyLibraryView extends ItemView {
     searchInput.value = this.searchQuery;
     searchInput.addEventListener("input", () => {
       if (this.searchTimer) {
-        activeWindow.clearTimeout(this.searchTimer);
+        // Obsidian's community review requires timer functions to use `window`.
+        // eslint-disable-next-line obsidianmd/prefer-active-doc
+        window.clearTimeout(this.searchTimer);
       }
 
-      this.searchTimer = activeWindow.setTimeout(() => {
+      // Obsidian's community review requires timer functions to use `window`.
+      // eslint-disable-next-line obsidianmd/prefer-active-doc
+      this.searchTimer = window.setTimeout(() => {
         this.searchQuery = searchInput.value;
         this.renderList();
       }, 200);

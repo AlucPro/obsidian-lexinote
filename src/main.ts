@@ -44,8 +44,6 @@ import type {
 } from "./types";
 import type { TFile } from "obsidian";
 import type { ImportOptions } from "./dictionary/DictionaryImporter";
-import { parseAnkiPackage } from "./dictionary/parsers/AnkiPackageParser";
-import sqlWasmBase64 from "sql-wasm.wasm";
 
 export default class LexiNotePlugin extends Plugin {
   settings: LexiNoteSettings = { ...DEFAULT_SETTINGS };
@@ -53,7 +51,6 @@ export default class LexiNotePlugin extends Plugin {
   customDictionarySnapshots: CustomDictionarySnapshot[] = [];
   dictionaryService: DictionaryService = new DictionaryService();
   dictionaryImporter: DictionaryImporter = new DictionaryImporter();
-  private sqlWasmBinary?: ArrayBuffer;
   vocabularyStore: VocabularyStore = new VocabularyStore(this.favorites);
   vocabularyExporter: VocabularyExporter = new VocabularyExporter();
   analysisStore: AnalysisStore = new AnalysisStore();
@@ -154,7 +151,9 @@ export default class LexiNotePlugin extends Plugin {
 
   onunload(): void {
     if (this.reanalyzeTimer) {
-      activeWindow.clearTimeout(this.reanalyzeTimer);
+      // Obsidian's community review requires timer functions to use `window`.
+      // eslint-disable-next-line obsidianmd/prefer-active-doc
+      window.clearTimeout(this.reanalyzeTimer);
     }
 
     this.pronunciationService.cancel();
@@ -301,87 +300,6 @@ export default class LexiNotePlugin extends Plugin {
     new Notice(t("noticeImportedWords", { count: result.successCount }));
 
     return result;
-  }
-
-  private loadSqlWasmBinary(): ArrayBuffer {
-    if (!this.sqlWasmBinary) {
-      const binaryString = atob(sqlWasmBase64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i += 1) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      this.sqlWasmBinary = bytes.buffer;
-    }
-    return this.sqlWasmBinary;
-  }
-
-  async importApkgDictionary(options: ImportOptions): Promise<ImportResult> {
-    const dictionaryName = options.dictionaryName.trim();
-
-    if (this.isDuplicateDictionaryName(dictionaryName)) {
-      new Notice(t("noticeDictionaryNameExists"));
-      return {
-        successCount: 0,
-        failedCount: 1,
-        skippedCount: 0,
-        errors: [{ message: `Dictionary name already exists: ${dictionaryName}` }]
-      };
-    }
-
-    if (!options.binaryContent) {
-      return {
-        successCount: 0,
-        failedCount: 1,
-        skippedCount: 0,
-        errors: [{ message: "APKG file content is missing." }]
-      };
-    }
-
-    try {
-      const wasmBinary = this.loadSqlWasmBinary();
-      const parsedDeck = await parseAnkiPackage({
-        binaryContent: options.binaryContent,
-        wasmBinary
-      });
-
-      const result = this.dictionaryImporter.importFromAnkiDeck(parsedDeck, options);
-
-      if (!result.snapshot) {
-        new Notice(t("noticeDictionaryImportFailed"));
-        return result;
-      }
-
-      const snapshot: CustomDictionarySnapshot = {
-        ...result.snapshot,
-        id: this.createCustomDictionaryId(result.snapshot),
-        enabled: true,
-        order: this.settings.dictionaryOrder.length
-      };
-      this.customDictionarySnapshots = [...this.customDictionarySnapshots, snapshot];
-      this.settings.enabledDictionaryIds = [
-        ...new Set([...this.settings.enabledDictionaryIds, snapshot.id])
-      ];
-      this.settings.dictionaryOrder = [
-        ...this.settings.dictionaryOrder.filter((id) => id !== snapshot.id),
-        snapshot.id
-      ];
-
-      await this.savePluginData();
-      this.refreshDictionary();
-      await this.reanalyzeActiveDocument("dictionary-change");
-      new Notice(t("noticeImportedWords", { count: result.successCount }));
-
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to parse APKG file.";
-      new Notice(t("noticeDictionaryImportFailed"));
-      return {
-        successCount: 0,
-        failedCount: 1,
-        skippedCount: 0,
-        errors: [{ message }]
-      };
-    }
   }
 
   async setDictionaryEnabled(
@@ -699,7 +617,9 @@ export default class LexiNotePlugin extends Plugin {
     link.click();
     link.remove();
 
-    activeWindow.setTimeout(() => {
+    // Obsidian's community review requires timer functions to use `window`.
+    // eslint-disable-next-line obsidianmd/prefer-active-doc
+    window.setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 1000);
   }
@@ -937,10 +857,14 @@ export default class LexiNotePlugin extends Plugin {
 
   private queueReanalyzeActiveDocument(reason: RefreshReason): void {
     if (this.reanalyzeTimer) {
-      activeWindow.clearTimeout(this.reanalyzeTimer);
+      // Obsidian's community review requires timer functions to use `window`.
+      // eslint-disable-next-line obsidianmd/prefer-active-doc
+      window.clearTimeout(this.reanalyzeTimer);
     }
 
-    this.reanalyzeTimer = activeWindow.setTimeout(() => {
+    // Obsidian's community review requires timer functions to use `window`.
+    // eslint-disable-next-line obsidianmd/prefer-active-doc
+    this.reanalyzeTimer = window.setTimeout(() => {
       void this.reanalyzeActiveDocument(reason);
     }, 300);
   }
@@ -964,10 +888,14 @@ export default class LexiNotePlugin extends Plugin {
     };
 
     if (this.reanalyzeTimer) {
-      activeWindow.clearTimeout(this.reanalyzeTimer);
+      // Obsidian's community review requires timer functions to use `window`.
+      // eslint-disable-next-line obsidianmd/prefer-active-doc
+      window.clearTimeout(this.reanalyzeTimer);
     }
 
-    this.reanalyzeTimer = activeWindow.setTimeout(() => {
+    // Obsidian's community review requires timer functions to use `window`.
+    // eslint-disable-next-line obsidianmd/prefer-active-doc
+    this.reanalyzeTimer = window.setTimeout(() => {
       const pendingAnalysis = this.pendingEditorAnalysis;
       this.pendingEditorAnalysis = undefined;
 

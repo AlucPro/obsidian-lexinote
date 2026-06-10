@@ -287,7 +287,7 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       .then((setting) => {
         const fileInput = activeDocument.createElement("input");
         fileInput.type = "file";
-        fileInput.accept = ".json,.csv,.txt,.tsv,.apkg";
+        fileInput.accept = ".json,.csv,.txt,.tsv";
         fileInput.addEventListener("change", () => {
           this.importFile = fileInput.files?.[0];
           this.setImportStatus(
@@ -503,37 +503,6 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
       }
     }
 
-    if (format === "apkg") {
-      const binaryContent = await this.importFile.arrayBuffer();
-      const result = await this.plugin.importApkgDictionary({
-        fileName: this.importFile.name,
-        binaryContent,
-        format,
-        dictionaryName: this.importDictionaryName,
-        difficulty: this.importDifficulty,
-        importedAt: Date.now(),
-      });
-
-      if (result.snapshot) {
-        this.setImportStatus(
-          t("settingsImportResult", {
-            successCount: result.successCount,
-            failedCount: result.failedCount,
-            skippedCount: result.skippedCount,
-          }),
-        );
-        this.importFile = undefined;
-        this.display();
-      } else {
-        this.setImportStatus(
-          t("settingsImportFailed", {
-            message: result.errors.map((error) => error.message).join(" "),
-          }),
-        );
-      }
-      return;
-    }
-
     const result = await this.plugin.importCustomDictionary({
       fileName: this.importFile.name,
       content: await this.importFile.text(),
@@ -568,7 +537,6 @@ export class LexiNoteSettingsTab extends PluginSettingTab {
     if (extension === "json") return "json";
     if (extension === "csv") return "csv";
     if (extension === "tsv") return "anki-text";
-    if (extension === "apkg") return "apkg";
     if (extension === "txt") return "txt";
 
     return undefined;

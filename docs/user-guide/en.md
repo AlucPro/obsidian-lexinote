@@ -245,7 +245,7 @@ If you like LexiNote, or if you are looking for someone who can turn developer t
 
 - Hover auto-pronunciation: automatically reads aloud words on hover.
 - Dictionary path rules: enable or disable dictionaries for specific vault folders.
-- Anki deck import: import `.apkg` Anki decks as custom dictionary sources.
+- Anki text import: import Anki-compatible TSV text as custom dictionary sources.
 
 ## Repository
 

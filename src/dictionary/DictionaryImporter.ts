@@ -4,9 +4,8 @@ import type {
   ImportResult
 } from "../types";
 import { parseAnkiText } from "./parsers/AnkiTextParser";
-import type { ParsedAnkiDeck } from "./parsers/AnkiPackageParser";
 
-export type ImportFormat = "json" | "csv" | "txt" | "anki-text" | "apkg";
+export type ImportFormat = "json" | "csv" | "txt" | "anki-text";
 
 export interface AnkiFieldMapping {
   noteTypeId?: string;
@@ -17,7 +16,6 @@ export interface AnkiFieldMapping {
 export interface ImportOptions {
   fileName: string;
   content?: string;
-  binaryContent?: ArrayBuffer;
   format: ImportFormat;
   dictionaryName: string;
   difficulty: DictionaryDifficulty;
@@ -146,89 +144,6 @@ export class DictionaryImporter {
     }
 
     return this.parseTxtRows(content);
-  }
-
-  importFromAnkiDeck(
-    parsedDeck: ParsedAnkiDeck,
-    options: ImportOptions
-  ): ImportResult {
-    const dictionaryName = options.dictionaryName.trim();
-    const errors: ImportResult["errors"] = [];
-
-    if (!dictionaryName) {
-      return this.emptyResult([
-        { message: "Dictionary name is required." }
-      ]);
-    }
-
-    if (!Number.isFinite(options.difficulty) || options.difficulty <= 0) {
-      return this.emptyResult([
-        { message: "Dictionary difficulty must be a finite positive number." }
-      ]);
-    }
-
-    const entriesByWord = new Map<string, DictionaryEntry>();
-    let successCount = 0;
-    let skippedCount = 0;
-    let failedCount = 0;
-
-    for (const row of parsedDeck.rows) {
-      const word = this.stringifyImportValue(row.word).trim();
-
-      if (!word) {
-        skippedCount += 1;
-        continue;
-      }
-
-      if (!/[A-Za-z]/.test(word)) {
-        failedCount += 1;
-        errors.push({
-          line: row.line,
-          message: `Invalid word: ${word}`
-        });
-        continue;
-      }
-
-      const normalizedWord = word.toLowerCase();
-      const meaning =
-        typeof row.meaning === "string" && row.meaning.trim()
-          ? row.meaning.trim()
-          : undefined;
-
-      entriesByWord.set(normalizedWord, {
-        word,
-        normalizedWord,
-        dictionaryName,
-        difficulty: options.difficulty,
-        meaning,
-        source: "custom"
-      });
-      successCount += 1;
-    }
-
-    const entries = Array.from(entriesByWord.values());
-
-    return {
-      snapshot: {
-        id: `custom-${options.importedAt}`,
-        entries,
-        importedAt: options.importedAt,
-        sourceFileName: options.fileName,
-        dictionaryName,
-        difficulty: options.difficulty,
-        enabled: true,
-        order: 0,
-        stats: {
-          successCount,
-          failedCount,
-          skippedCount
-        }
-      },
-      successCount,
-      failedCount,
-      skippedCount,
-      errors
-    };
   }
 
   private parseJsonRows(
